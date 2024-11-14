@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace Chicchilan - Inicio</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Barra de Navegación -->
+    <header class="navbar">
+        <h1 class="logo">Marketplace Chicchilan </h1>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="Home.html">Inicio</a></li>
+                <li><a href="cart.html">Carrito</a></li>
+                <li><a href="nosotros.html">Nosotros</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="product-section">
+        <h2>Productos Destacados</h2>
+        <div class="product-grid" id="productos">
+            <!-- Los productos se agregarán dinámicamente aquí -->
+        </div>
+
+    </main>
+
+    <!-- Pie de página -->
+    <footer class="footer">
+        <p>&copy; 2024 Mi Tienda. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+        async function cargarProductos() {
+            const response = await fetch('/api/productos');
+            const productos = await response.json();
+            const productosDiv = document.getElementById('productos');
+
+            productos.forEach(producto => {
+                const productoDiv = document.createElement('div');
+                productoDiv.classList.add('product-card');
+
+                // Convertimos toda la tarjeta en un enlace hacia la página de detalles del producto
+                productoDiv.innerHTML = `
+                    <a href="product.html?id=${producto.id}" style="text-decoration: none; color: inherit;">
+                        <img src="${producto.imagen}" alt="${producto.nombre}">
+                        <h3>${producto.nombre}</h3>
+                        <p class="price">$${producto.precio}</p>
+                    </a>
+                    <button class="btn" onclick="agregarAlCarrito(${producto.id}, '${producto.nombre}', ${producto.precio}, '${producto.imagen}')">Añadir al carrito</button>
+                `;
+                
+                productosDiv.appendChild(productoDiv);
+            });
+        }
+
+        // Función para agregar productos al carrito
+        async function agregarAlCarrito(productId, nombre, precio, imagen) {
+            const response = await fetch('/api/carrito', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    producto_id: productId,
+                    nombre: nombre,
+                    precio: precio,
+                    imagen: imagen,
+                    cantidad: 1
+                })
+            });
+            
+            const data = await response.json();
+            alert(data.message);
+        }
+
+
+        // Llamar a la función para cargar los productos cuando la página cargue
+        cargarProductos();
+    </script>  
+</body>
+</html>

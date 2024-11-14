@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles del Producto</title>
+    <link rel="stylesheet" href="product.css">
+</head>
+<body>
+
+    
+    <header class="navbar">
+        <h1 class="logo">Marketplace Chicchilan </h1>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="Home.html">Inicio</a></li>
+                <li><a href="cart.html">Carrito</a></li>
+                <li><a href="nosotros.html">Nosotros</a></li>
+            </ul>
+        </nav>
+    </header>
+
+
+    <div class="product-details">
+        <h1 id="product-name"></h1>
+        <img id="product-image" src="" alt="Imagen del producto">
+        <p id="product-description"></p>
+        <p>Precio: $<span id="product-price"></span></p>
+        <button class="btn" onclick="agregarAlCarrito()">Añadir al carrito</button>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 Tienda Online. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+        // Obtén el ID del producto desde la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        // Llama a la API para obtener los detalles del producto
+        fetch(`/producto/${productId}`)
+            .then(response => response.json())
+            .then(product => {
+                if (product.error) {
+                    document.body.innerHTML = '<h2>Producto no encontrado</h2>';
+                } else {
+                    document.getElementById('product-name').textContent = product.nombre;
+                    document.getElementById('product-image').src = product.imagen;
+                    document.getElementById('product-description').textContent = product.descripcion;
+                    document.getElementById('product-price').textContent = product.precio;
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar el producto:', error);
+                document.body.innerHTML = '<h2>Error al cargar el producto</h2>';
+            });
+
+        // Función para agregar el producto al carrito
+        function agregarAlCarrito() {
+            fetch('/api/carrito', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    producto_id: productId,
+                    nombre: document.getElementById('product-name').textContent,
+                    precio: parseFloat(document.getElementById('product-price').textContent),
+                    imagen: document.getElementById('product-image').src,
+                    cantidad: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error('Error al agregar al carrito:', error));
+        }
+    </script>
+</body>
+</html>

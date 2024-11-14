@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Tienda - Carrito de Compras</title>
+    <link rel="stylesheet" href="cart.css">
+</head>
+<body>
+    <!-- Barra de Navegación -->
+    <header class="navbar">
+        <h1 class="logo">Mi Tienda</h1>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="Home.html">Inicio</a></li>
+                <li><a href="nosotros.html">Nosotros</a></li>
+                <li><a href="contacto.html">Contacto</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Sección de Carrito -->
+    <main class="cart-section">
+        <h2>Tu Carrito de Compras</h2>
+        <div class="cart-container">
+            <!-- Aquí se mostrarán los productos en el carrito -->
+            <div id="productos"></div>
+            
+            <div class="cart-summary">
+                <p id="total">Total: $0.00</p>
+                <button class="checkout-btn">Finalizar Compra</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Pie de página -->
+    <footer class="footer">
+        <p>&copy; 2024 Mi Tienda. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+        // Función para cargar los productos del carrito
+        async function cargarCarrito() {
+            const response = await fetch('/api/carrito');
+            const carrito = await response.json();
+            const productosDiv = document.getElementById('productos');
+            let total = 0;
+
+            productosDiv.innerHTML = ''; // Limpiar la lista de productos antes de cargar
+
+            carrito.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('cart-item');
+                itemDiv.innerHTML = `
+                    <img src="${item.imagen}" alt="${item.nombre}">
+                    <div class="item-details">
+                        <h3>${item.nombre}</h3>
+                        <p>Precio: $${item.precio}</p>
+                        <p>Cantidad: ${item.cantidad}</p>
+                        <p>Total: $${(item.precio * item.cantidad).toFixed(2)}</p>
+                    </div>
+                    <button class="remove-btn" onclick="eliminarDelCarrito(${item.producto_id})">Eliminar</button>
+                `;
+                productosDiv.appendChild(itemDiv);
+                total += item.precio * item.cantidad;
+            });
+
+            // Actualizar el total
+            document.getElementById('total').innerText = `Total: $${total.toFixed(2)}`;
+        }
+
+        // Función para eliminar productos del carrito
+        async function eliminarDelCarrito(productId) {
+            const response = await fetch(`/api/carrito/${productId}`, { method: 'DELETE' });
+            const data = await response.json();
+            alert(data.message);
+            cargarCarrito(); 
+        }
+
+        cargarCarrito();
+    </script> 
+</body>
+</html>

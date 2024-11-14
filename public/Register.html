@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+    <link rel="stylesheet" href="RegisterForm.css">
+</head>
+<body>
+    <div class="wrapper">
+        <form action="/api/registro" method="post">
+            <h1>Registro</h1>
+            <div class="input-box">
+                <input type="text" name="nombre" placeholder="Nombre" required>
+                <span class="icon">👤</span> <!-- Icono de usuario -->
+            </div>
+            <div class="input-box">
+                <input type="password" name="contraseña" placeholder="Contraseña" required>
+                <span class="icon">🔒</span> <!-- Icono de candado -->
+            </div>
+            <div class="input-box">
+                <input type="email" name="email" placeholder="Correo" required>
+                <span class="icon">✉️</span> <!-- Icono de correo -->
+            </div>
+            <div class="input-box">
+                <input type="text" name="telefono" placeholder="Teléfono" required>
+                <span class="icon">📞</span> <!-- Icono de teléfono -->
+            </div>
+            <div class="input-box">
+                <select name="rol" required>
+                    <option value="" disabled selected>Selecciona tu rol</option>
+                    <option value="Productor">Productor</option>
+                    <option value="Consumidor">Consumidor</option>
+                </select>
+                <span class="icon">👥</span> <!-- Icono de rol -->
+            </div>
+            <button type="submit">Registrarme</button>
+        </form>
+    </div>
+</body>
+</html>
