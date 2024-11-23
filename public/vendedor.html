@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendedor</title>
+    <link rel="stylesheet" href="vendedor-style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Panel de Control del Vendedor</h1>
+    </header>
+
+    <nav>
+        <a href="#" class="tab-link active" data-tab="productos">Administrar Productos</a>
+        <a href="#" class="tab-link" data-tab="ventas">Mis Ventas</a>
+        <a href="#" class="tab-link" data-tab="perfil">Mi Perfil</a>
+    </nav>
+
+    <div class="container">
+        <!-- Panel para administrar productos -->
+        <div class="panel active" id="productos">
+            <h2>Administrar Productos</h2>
+            <!-- Formulario para agregar o modificar productos -->
+            <form id="productForm">
+                <div class="form-group">
+                    <label for="nombre">Nombre del Producto:</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoria">Categoría del Producto:</label>
+                    <select id="categoria" name="categoria" required>
+                        <!-- Las categorías se cargarán automáticamente aquí -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="Descripcion">Descripción del Producto:</label>
+                    <input type="text" id="Descripcion" name="Descripcion" required>
+                </div>
+                <div class="form-group">
+                    <label for="precio">Precio:</label>
+                    <input type="number" id="precio" name="precio" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="Stock">Cantidad/Stock del Producto:</label>
+                    <input type="number" id="Stock" name="Stock" required>
+                </div>
+                <div class="form-group">
+                    <label for="Imagen">Imagen del Producto:</label>
+                    <input type="file" id="Imagen" name="Imagen" required>
+                </div>
+
+                <input type="submit" value="Insertar Producto">
+            </form>
+            <div id="mensaje" style="display: none;"></div>
+
+            <!-- Lista de productos -->
+            <h3>Mis Productos</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="productList">
+                    <!-- Aquí se listarán los productos -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Panel para ver ventas -->
+        <div class="panel" id="ventas">
+            <h2>Mis Ventas</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID de Venta</th>
+                        <th>Producto</th>
+                        <th>Precio</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Aquí se listarán las ventas realizadas -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Panel para editar datos personales -->
+        <div class="panel" id="perfil">
+            <h2>Mis Datos</h2>
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="sellerName">Nombre:</label>
+                    <input type="text" id="sellerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="sellerEmail">Correo Electrónico:</label>
+                    <input type="email" id="sellerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="sellerPhone">Teléfono:</label>
+                    <input type="tel" id="sellerPhone" required>
+                </div>
+                <button type="submit" class="btn">Actualizar Datos</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>Panel de Vendedor © 2024</p>
+    </footer>
+
+    <script>
+        
+                async function cargarCategorias() {
+            try {
+                const response = await fetch('http://192.168.1.3:3000/api/categorias');
+                if (!response.ok) {
+                    throw new Error('Error al cargar las categorías');
+                }
+                const data = await response.json();
+                console.log(data);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Cargar las categorías cuando la página esté lista
+        
+    
+
+        // Script para cambiar entre tabs
+        document.querySelectorAll('.tab-link').forEach(link => {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+                
+                // Cambiar la clase 'active' en el enlace
+                document.querySelectorAll('.tab-link').forEach(item => item.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Mostrar el panel correspondiente
+                const targetPanel = this.getAttribute('data-tab');
+                document.querySelectorAll('.panel').forEach(panel => {
+                    panel.classList.remove('active');
+                    if (panel.id === targetPanel) {
+                        panel.classList.add('active');
+                    }
+                });
+            });
+        });
+        window.onload = cargarCategorias;
+    </script>
+</body>
+</html>
