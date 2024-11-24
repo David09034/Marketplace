@@ -13,6 +13,7 @@
     </header>
 
     <nav>
+        <a href="Home.html">Inicio</a>
         <a href="#" class="tab-link active" data-tab="productos">Administrar Productos</a>
         <a href="#" class="tab-link" data-tab="ventas">Mis Ventas</a>
         <a href="#" class="tab-link" data-tab="perfil">Mi Perfil</a>
@@ -23,7 +24,7 @@
         <div class="panel active" id="productos">
             <h2>Administrar Productos</h2>
             <!-- Formulario para agregar o modificar productos -->
-            <form id="productForm">
+            <form id="productForm" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="nombre">Nombre del Producto:</label>
                     <input type="text" id="nombre" name="nombre" required>
@@ -45,7 +46,7 @@
                 <div class="form-group">
                     <label for="Stock">Cantidad/Stock del Producto:</label>
                     <input type="number" id="Stock" name="Stock" required>
-                </div>
+                </div>                
                 <div class="form-group">
                     <label for="Imagen">Imagen del Producto:</label>
                     <input type="file" id="Imagen" name="Imagen" required>
@@ -115,44 +116,64 @@
     </footer>
 
     <script>
+        async function cargarCategorias() {
+    // Definir categorías estáticas
+    const categorias = [
+    { Categoria: 'Frutas' }, // Aquí entraría moras y otros productos frutales
+        { Categoria: 'Lácteos' }, // Para queso, leche, etc.
+        { Categoria: 'Ropa' }, // Productos de vestimenta
+        { Categoria: 'Verduras' }, // Productos vegetales
+        { Categoria: 'Artículos Artesanales' }, // Productos hechos a mano
+        { Categoria: 'Cuidado Personal' }, // Productos como jabones, cremas, etc.
+        { Categoria: 'Bebidas' }, // Incluye jugos, leche, agua, etc.
+    ];
+
+    try {
+        const categoriaSelect = document.getElementById('categoria');
         
-                async function cargarCategorias() {
-            try {
-                const response = await fetch('http://192.168.1.3:3000/api/categorias');
-                if (!response.ok) {
-                    throw new Error('Error al cargar las categorías');
-                }
-                const data = await response.json();
-                console.log(data);
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
+        // Agregar las categorías estáticas al select
+        categorias.forEach(categoria => {
+            const option = document.createElement('option');
+            option.value = categoria.Categoria;
+            option.textContent = categoria.Categoria;
+            categoriaSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
 
         // Cargar las categorías cuando la página esté lista
-        
-    
-
-        // Script para cambiar entre tabs
-        document.querySelectorAll('.tab-link').forEach(link => {
-            link.addEventListener('click', function(event) {
-                event.preventDefault();
-                
-                // Cambiar la clase 'active' en el enlace
-                document.querySelectorAll('.tab-link').forEach(item => item.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Mostrar el panel correspondiente
-                const targetPanel = this.getAttribute('data-tab');
-                document.querySelectorAll('.panel').forEach(panel => {
-                    panel.classList.remove('active');
-                    if (panel.id === targetPanel) {
-                        panel.classList.add('active');
-                    }
-                });
-            });
-        });
         window.onload = cargarCategorias;
+
+        // Manejo del formulario para agregar productos
+        document.getElementById('productForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            
+            try {
+                const response = await fetch('/api/productos', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al insertar el producto');
+                }
+
+                // Mostrar mensaje de éxito
+                const mensaje = document.getElementById('mensaje');
+                mensaje.textContent = 'Producto insertado exitosamente';
+                mensaje.style.display = 'block';
+                
+                // Limpiar el formulario
+                event.target.reset();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al insertar el producto');
+            }
+        });
     </script>
 </body>
 </html>

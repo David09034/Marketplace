@@ -25,7 +25,6 @@
         <div class="product-grid" id="productos">
             <!-- Los productos se agregarán dinámicamente aquí -->
         </div>
-
     </main>
 
     <!-- Pie de página -->
@@ -37,25 +36,30 @@
         async function cargarProductos() {
             const response = await fetch('/api/productos');
             const productos = await response.json();
+            console.log(productos); // Verifica la estructura de los datos
             const productosDiv = document.getElementById('productos');
 
             productos.forEach(producto => {
+                console.log(producto); // Verifica cada producto individual
                 const productoDiv = document.createElement('div');
                 productoDiv.classList.add('product-card');
 
-                // Convertimos toda la tarjeta en un enlace hacia la página de detalles del producto
+                // Aquí la imagen se recupera desde la base de datos usando su ID
+                const imagenUrl = `/api/producto/imagen/${producto.ProductoID}`;
+
                 productoDiv.innerHTML = `
-                    <a href="product.html?id=${producto.id}" style="text-decoration: none; color: inherit;">
-                        <img src="${producto.imagen}" alt="${producto.nombre}">
-                        <h3>${producto.nombre}</h3>
-                        <p class="price">$${producto.precio}</p>
+                    <a href="product.html?id=${producto.ProductoID}" style="text-decoration: none; color: inherit;">
+                        <img src="${imagenUrl}" alt="${producto.Nombre}">
+                        <h3>${producto.Nombre}</h3>
+                        <p class="price">$${producto.Precio}</p>
                     </a>
-                    <button class="btn" onclick="agregarAlCarrito(${producto.id}, '${producto.nombre}', ${producto.precio}, '${producto.imagen}')">Añadir al carrito</button>
+                    <button class="btn" onclick="agregarAlCarrito(${producto.ProductoID}, '${producto.Nombre}', ${producto.Precio}, '${producto.imagen}')">Añadir al carrito</button>
                 `;
-                
+
                 productosDiv.appendChild(productoDiv);
             });
         }
+
 
         // Función para agregar productos al carrito
         async function agregarAlCarrito(productId, nombre, precio, imagen) {
@@ -72,11 +76,15 @@
                     cantidad: 1
                 })
             });
-            
-            const data = await response.json();
-            alert(data.message);
-        }
 
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert(`Error: ${errorData.message}`);
+            } else {
+                const data = await response.json();
+                alert(data.message);
+            }
+        }
 
         // Llamar a la función para cargar los productos cuando la página cargue
         cargarProductos();
