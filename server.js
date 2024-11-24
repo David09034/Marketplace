@@ -6,9 +6,9 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 3000;
+const mod_var = 'M';
 
-// Configuración de la conexión a la base de datos MySQL
-const pool = mysql.createPool({
+const poolConfig = mod_var === 'D' ? {
     host: 'localhost',
     user: 'root', 
     password: '1234',
@@ -16,7 +16,18 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
-});
+} : {
+    host: '192.168.1.3',
+    user: 'matheo',
+    password: 'admin1234',
+    database: 'tienda',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+};
+
+// Crear el pool con la configuración correspondiente
+const pool = mysql.createPool(poolConfig);
 
 app.use(session({
     secret: 'mi_secreto',   
@@ -100,16 +111,28 @@ app.post('/api/registro', express.json(), async (req, res) => {
     const { nombre, email, contraseña, telefono, rol } = req.body;
 
     try {
+        // Validar el formato del correo electrónico
+        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: 'Formato de correo electrónico inválido' });
+        }
+
+        // Hashear la contraseña
         const hashedPassword = await bcrypt.hash(contraseña, 10);
 
-        const query = `
-            INSERT INTO Usuarios (Nombre, Email, Contraseña, Telefono, Rol)
-            VALUES (?, ?, ?, ?, ?)
-        `;
-        
+        // Llamar al procedimiento almacenado
+        const query = `CALL REGISTRAR_USUARIO(?, ?, ?, ?, ?, @status)`;
         const values = [nombre, email, hashedPassword, telefono, rol];
+
         await pool.query(query, values);
-        
+
+        // Obtener el estado del procedimiento almacenado
+        const [rows] = await pool.query('SELECT @status AS status');
+
+        if (rows[0].status === 0) {
+            return res.status(400).json({ error: 'El correo electrónico ya está registrado' });
+        }
+
         res.redirect('/Home.html');
     } catch (error) {
         console.error(error);
@@ -117,25 +140,41 @@ app.post('/api/registro', express.json(), async (req, res) => {
     }
 });
 
+
 // Comprobación de credenciales e inicio de sesión
+
+
 app.post('/api/login', express.urlencoded({ extended: true }), async (req, res) => {
     const { email, contraseña } = req.body;
 
     try {
-        const [rows] = await pool.query('SELECT * FROM Usuarios WHERE Email = ?', [email]);
+        // Llamar al procedimiento almacenado VALIDAR_USUARIO
+        const query = `CALL tienda.VALIDAR_USUARIO(?, ?, @S_Usuario_ID, @S_Rol_Usuario, @S_Contraseña_Hasheada)`;
+        const values = [email, contraseña];
 
-        if (rows.length > 0) {
-            const user = rows[0];
+        // Ejecutar la consulta para llamar al procedimiento
+        await pool.query(query, values);
 
-            const match = await bcrypt.compare(contraseña, user.Contraseña);
+        // Obtener los valores de los parámetros de salida
+        const [rows] = await pool.query('SELECT @S_Usuario_ID AS UsuarioID, @S_Rol_Usuario AS Rol_Usuario, @S_Contraseña_Hasheada AS Contraseña_Hasheada');
+
+        if (rows.length > 0 && rows[0].UsuarioID) {
+            // Obtener la información del usuario
+            const userId = rows[0].UsuarioID;
+            const userRole = rows[0].Rol_Usuario;
+            const hashedPassword = rows[0].Contraseña_Hasheada;
+
+            // Comparar la contraseña ingresada con la contraseña hasheada en la base de datos
+            const match = await bcrypt.compare(contraseña, hashedPassword);
 
             if (match) {
-                req.session.userId = user.UsuarioID;
-                req.session.userName = user.Nombre;
-
+                // Si las contraseñas coinciden, iniciar sesión
+                req.session.userId = userId;
+                req.session.userRole = userRole;
                 res.redirect('/Home.html');
             } else {
-                res.status(401).json({ message: 'Contraseña Incorrecta' });
+                // Si no coinciden, devolver error
+                res.status(401).json({ message: 'Contraseña incorrecta' });
             }
         } else {
             res.status(404).json({ message: 'Usuario no encontrado' });
@@ -145,6 +184,8 @@ app.post('/api/login', express.urlencoded({ extended: true }), async (req, res) 
         res.status(500).json({ error: 'Error al iniciar sesión' });
     }
 });
+
+
 
 // Obtener los productos en el carrito
 app.get('/api/carrito', (req, res) => {
