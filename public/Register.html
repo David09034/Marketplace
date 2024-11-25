@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro</title>
     <link rel="stylesheet" href="RegisterForm.css">
+    <script>
+        // Función para mostrar campos adicionales al seleccionar "Productor"
+        function mostrarCamposAdicionales() {
+            var rol = document.querySelector("select[name='rol']").value;
+            var camposProductor = document.getElementById("campos-productor");
+
+            // Mostrar u ocultar los campos según el rol seleccionado
+            if (rol === "Productor") {
+                camposProductor.style.display = "block"; // Mostrar campos para "Productor"
+            } else {
+                camposProductor.style.display = "none"; // Ocultar campos para "Productor"
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="wrapper">
@@ -27,13 +41,28 @@
                 <span class="icon">📞</span> <!-- Icono de teléfono -->
             </div>
             <div class="input-box">
-                <select name="rol" required>
+                <select name="rol" required onchange="mostrarCamposAdicionales()">
                     <option value="" disabled selected>Selecciona tu rol</option>
                     <option value="Productor">Productor</option>
                     <option value="Consumidor">Consumidor</option>
                 </select>
                 <span class="icon">👥</span> <!-- Icono de rol -->
             </div>
+
+            <!-- Campos adicionales solo para el rol "Productor" -->
+            <div id="campos-productor" style="display: none;">
+                <div class="input-box">
+                    <input type="text" name="empresa" placeholder="Nombre de la empresa" required>
+                    <span class="icon">🏢</span> <!-- Icono de empresa -->
+                </div>
+                <div class="input-box">
+                    <input type="text" name="ubicacion" placeholder="Ubicación de la empresa" required>
+                    <span class="icon">🗺️</span> <!-- Icono de mapa para ubicación -->
+                </div>
+
+
+            </div>
+
             <button type="submit">Registrarme</button>
         </form>
     </div>

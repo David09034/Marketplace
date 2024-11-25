@@ -106,11 +106,23 @@ app.post('/api/carrito', express.json(), (req, res) => {
     res.status(201).json({ message: 'Producto agregado al carrito' });
 });
 
+
+
 // Registro de Usuarios
 app.post('/api/registro', express.json(), async (req, res) => {
-    const { nombre, email, contraseña, telefono, rol } = req.body;
+    const { nombre, email, contraseña, telefono, rol, empresa, ubicacion } = req.body;
 
     try {
+        // Imprimir los valores recibidos
+        console.log("Datos recibidos:");
+        console.log("Nombre:", nombre);
+        console.log("Email:", email);
+        console.log("Contraseña:", contraseña);
+        console.log("Teléfono:", telefono);
+        console.log("Rol:", rol);
+        console.log("Empresa:", empresa);
+        console.log("Ubicación:", ubicacion);
+
         // Validar el formato del correo electrónico
         const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
@@ -120,14 +132,35 @@ app.post('/api/registro', express.json(), async (req, res) => {
         // Hashear la contraseña
         const hashedPassword = await bcrypt.hash(contraseña, 10);
 
-        // Llamar al procedimiento almacenado
-        const query = `CALL REGISTRAR_USUARIO(?, ?, ?, ?, ?, @status)`;
-        const values = [nombre, email, hashedPassword, telefono, rol];
+        // Imprimir la contraseña hasheada
+        console.log("Contraseña hasheada:", hashedPassword);
 
+        // Llamar al procedimiento almacenado
+        let query;
+        let values;
+
+        if (rol === 'Productor') {
+            // Incluir los valores para el rol "Productor"
+            query = 'CALL REGISTRAR_USUARIO(?, ?, ?, ?, ?, ?, ?, @status)';
+            values = [nombre, email, hashedPassword, telefono, rol, empresa, ubicacion];
+        } else {
+            // Para el rol "Consumidor", no se necesitan los nuevos campos
+            query = 'CALL REGISTRAR_USUARIO(?, ?, ?, ?, ?, NULL, NULL, @status)';
+            values = [nombre, email, hashedPassword, telefono, rol, null, null];
+        }
+
+        // Imprimir la consulta y los valores que se están pasando
+        console.log("Consulta:", query);
+        console.log("Valores:", values);
+
+        // Ejecutar la consulta
         await pool.query(query, values);
 
         // Obtener el estado del procedimiento almacenado
         const [rows] = await pool.query('SELECT @status AS status');
+
+        // Imprimir el estado recibido del procedimiento almacenado
+        console.log("Estado del procedimiento almacenado:", rows[0].status);
 
         if (rows[0].status === 0) {
             return res.status(400).json({ error: 'El correo electrónico ya está registrado' });
@@ -135,10 +168,13 @@ app.post('/api/registro', express.json(), async (req, res) => {
 
         res.redirect('/Home.html');
     } catch (error) {
-        console.error(error);
+        console.error("Error al registrar el usuario:", error);
         res.status(500).json({ error: 'Error al registrar el usuario' });
     }
 });
+
+
+
 
 
 // Comprobación de credenciales e inicio de sesión
