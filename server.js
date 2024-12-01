@@ -5,8 +5,8 @@ const mysql = require('mysql2/promise');  // Importa mysql2 para promesas
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const app = express();
-const PORT = 3000;
-const mod_var = 'M';
+const PORT = 3001;
+const mod_var = 'D';
 
 const poolConfig = mod_var === 'D' ? {
     host: 'localhost',
@@ -71,7 +71,14 @@ app.get('/producto/:id', async (req, res) => {
 
         if (rows.length > 0) {
             const product = rows[0];
-            res.json(product);
+
+            // Enviar los detalles del producto, pero la URL de la imagen se enviará por separado
+            res.json({
+                nombre: product.Nombre,
+                descripcion: product.Descripcion,
+                precio: product.Precio,
+                imagenUrl: `/api/producto/imagen/${productId}`,  // Usar la URL de la imagen
+            });
         } else {
             res.status(404).json({ error: 'Producto no encontrado' });
         }
@@ -80,6 +87,7 @@ app.get('/producto/:id', async (req, res) => {
         res.status(500).json({ error: 'Error al cargar los detalles del producto' });
     }
 });
+
 
 // Ruta para agregar productos al carrito
 app.post('/api/carrito', express.json(), (req, res) => {
@@ -260,6 +268,9 @@ app.post('/api/productos', upload.single('Imagen'), async (req, res) => {
     const { nombre, descripcion, precio, Stock, categoria } = req.body;
     const imagen = req.file ? req.file.buffer : null; // Usamos el buffer de la imagen en la memoria
 
+    // Verificación de los datos recibidos
+    console.log('Datos recibidos:', { nombre, descripcion, precio, Stock, categoria });
+
     try {
         const query = 'INSERT INTO Productos (Nombre, Descripcion, Precio, CantidadEnStock, Categoria, Imagen) VALUES (?, ?, ?, ?, ?, ?)';
         await pool.query(query, [nombre, descripcion, precio, Stock, categoria, imagen]);
@@ -269,6 +280,7 @@ app.post('/api/productos', upload.single('Imagen'), async (req, res) => {
         res.status(500).json({ error: 'Error al insertar el producto' });
     }
 });
+
 
 // Obtener la imagen de un producto
 app.get('/api/producto/imagen/:id', async (req, res) => {
