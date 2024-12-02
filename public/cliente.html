@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Cliente</title>
+    <link rel="stylesheet" href="vendedor-style.css">
+</head>
+<body>
+    <header>
+        <h1>Panel de Cliente</h1>
+    </header>
+
+    <nav>
+        <a href="Home.html">Inicio</a>
+        <a href="#" class="tab-link active" data-tab="compras">Mis Compras</a>
+        <a href="#" class="tab-link" data-tab="perfil">Mi Perfil</a>
+    </nav>
+
+    <div class="container">
+        <!-- Panel para ver compras -->
+        <div class="panel active" id="compras">
+            <h2>Mis Compras</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID de Compra</th>
+                        <th>Producto</th>
+                        <th>Precio</th>
+                        <th>Cantidad</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody id="purchaseList">
+                    <!-- Aquí se listarán las compras del cliente -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Panel para editar datos personales -->
+        <div class="panel" id="perfil">
+            <h2>Mi Perfil</h2>
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="clientName">Nombre:</label>
+                    <input type="text" id="clientName" required>
+                </div>
+                <div class="form-group">
+                    <label for="clientEmail">Correo Electrónico:</label>
+                    <input type="email" id="clientEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="clientPhone">Teléfono:</label>
+                    <input type="tel" id="clientPhone" required>
+                </div>
+                <button type="submit" class="btn">Actualizar Datos</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>Panel del Cliente © 2024</p>
+    </footer>
+
+    <script>
+        async function cargarCompras() {
+            const clienteId = sessionStorage.getItem('userId'); // Usamos 'userId' que se almacena en sessionStorage
+
+            if (!clienteId) {
+                alert('Por favor, inicia sesión.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/compras/${clienteId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al obtener compras del cliente');
+                }
+
+                // Imprime la respuesta completa
+                const compras = await response.json();
+                console.log('Compras en el frontend ');
+                console.log(compras);  // Verifica cómo están estructurados los datos
+
+                const purchaseList = document.getElementById('purchaseList');
+                purchaseList.innerHTML = ''; // Limpiar la lista de compras
+
+                if (compras.length > 0) {
+                    compras.forEach(compra => {
+                        const fecha = new Date(compra.FechaOrden);
+                        const fechaFormateada = `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${compra.OrdenID}</td>
+                            <td>${compra.Producto}</td>
+                            <td>$${compra.Precio}</td>
+                            <td>${compra.Cantidad}</td>
+                            <td>${fechaFormateada}</td>
+                        `;
+                        purchaseList.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td colspan="5">No has realizado compras aún.</td>`;
+                    purchaseList.appendChild(row);
+                }
+            } catch (error) {
+                console.error('Error al cargar compras del cliente:', error);
+                alert('Error al cargar compras del cliente');
+            }
+        }
+
+
+
+        // Función para actualizar el perfil del cliente
+        async function actualizarPerfil(event) {    
+            event.preventDefault();
+
+            const userId = sessionStorage.getItem('userId');
+            if (!userId) {
+                alert('No se encontró el ID de usuario');
+                return;
+            }
+
+            const nombre = document.getElementById('clientName').value;
+            const email = document.getElementById('clientEmail').value;
+            const telefono = document.getElementById('clientPhone').value;
+
+            try {
+                const response = await fetch('/api/clientes/perfil', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId,
+                        nombre,
+                        email,
+                        telefono
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al actualizar perfil');
+                }
+
+                const result = await response.json();
+                alert(result.message);
+            } catch (error) {
+                console.error('Error al actualizar perfil:', error);
+                alert('Error al actualizar perfil');
+            }
+        }
+        window.onload = cargarCompras();
+        // Asociar eventos y cargar datos
+        document.getElementById('profileForm').addEventListener('submit', actualizarPerfil);
+        window.onload = cargarCompras;
+    </script>
+</body>
+</html>

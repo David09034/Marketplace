@@ -6,7 +6,7 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 3001;
-const mod_var = 'D';
+const mod_var = 'M';
 
 const poolConfig = mod_var === 'D' ? {
     host: 'localhost',
@@ -340,6 +340,31 @@ app.get('/api/producto/imagen/:id', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener la imagen' });
     }
 });
+
+//Get compras por cliente
+app.get('/api/compras/:clienteId', async (req, res) => {
+    const clienteId = req.params.clienteId;
+    console.log(`Recibiendo solicitudes para cliente con ID: ${clienteId}`);
+
+    try {
+        const query = 'CALL Get_Compras_Cliente(?)';
+        const values = [clienteId];
+        const [rows] = await pool.query(query, values);
+
+        console.log('Compras encontradas:', rows); // Imprime los resultados de la consulta
+
+        if (rows.length > 0) {
+            res.json(rows);  // Enviar las compras encontradas
+        } else {
+            res.json([]);  // Si no se encontraron compras, enviar un array vacío
+        }
+    } catch (error) {
+        console.error('Error al obtener las compras:', error);
+        res.status(500).json({ error: 'Error al obtener las compras del cliente' });
+    }
+});
+
+
 
 
 
