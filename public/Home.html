@@ -19,6 +19,13 @@
                 misProductosMenuItem.innerHTML = '<a href="vendedor.html">Mis Productos</a>';
                 navLinks.appendChild(misProductosMenuItem);
             }
+            else if (userRole === 'Consumidor') {
+                // Si el usuario es productor, mostrar el enlace "Mis Productos"
+                const navLinks = document.querySelector('.nav-links');
+                const misProductosMenuItem = document.createElement('li');
+                misProductosMenuItem.innerHTML = '<a href="cliente.html">Mis compras</a>';
+                navLinks.appendChild(misProductosMenuItem);
+            }
         });
     </script>
 </head>
@@ -28,10 +35,11 @@
         <h1 class="logo">Marketplace Chicchilan </h1>
         <nav>
             <ul class="nav-links">
-                <li><a href="Home.html">Inicio</a></li>
+                <li><a href="inicio.html">Inicio</a></li>
+                <li><a href="Home.html">Productos</a></li>
                 <li><a href="cart.html">Carrito</a></li>
                 <li><a href="nosotros.html">Nosotros</a></li>
-                <li><a href="product.html">Productos</a></li>
+                
                 <!-- "Mis Productos" solo se añadirá dinámicamente si el usuario es productor -->
             </ul>
         </nav>

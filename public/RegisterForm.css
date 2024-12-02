@@ -1,3 +1,4 @@
+/* General */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -13,6 +14,7 @@ body {
     background-color: #f4f4f9;
 }
 
+/* Contenedor principal */
 .wrapper {
     width: 100%;
     max-width: 400px;
@@ -28,12 +30,14 @@ h1 {
     color: #333;
 }
 
+/* Estilos para los campos de entrada */
 .input-box {
     position: relative;
     margin-bottom: 15px;
 }
 
-.input-box input {
+.input-box input,
+.input-box select {
     width: 100%;
     padding: 10px;
     padding-left: 35px;
@@ -50,18 +54,78 @@ h1 {
     color: #888;
 }
 
-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #333;
+/* Botón "Registrarme" */
+button[type="submit"] {
+    background-color: #d32f2f; /* Rojo */
     color: #fff;
+    font-size: 16px;
+    font-weight: bold;
     border: none;
     border-radius: 5px;
-    font-size: 16px;
+    padding: 12px;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background-color 0.3s, transform 0.2s;
+    margin-bottom: 15px; /* Espaciado entre botones */
+    width: 100%;
 }
 
-button:hover {
-    background-color: #555;
+button[type="submit"]:hover {
+    background-color: #b71c1c; /* Rojo más oscuro */
+}
+
+button[type="submit"]:active {
+    transform: translateY(1px);
+}
+
+/* Botón para usuarios existentes */
+.existing-user button {
+    background-color: #0066cc; /* Azul */
+    color: #fff;
+    font-size: 14px;
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    margin-bottom: 15px; /* Separación entre los botones */
+    width: 100%;
+}
+
+.existing-user button:hover {
+    background-color: #004c99; /* Azul más oscuro */
+}
+
+.existing-user button:active {
+    transform: translateY(1px);
+}
+
+/* Fondo amarillo para el texto "¿Ya tienes una cuenta?" */
+.existing-user p {
+    background-color: #ffeb3b; /* Amarillo */
+    padding: 10px;
+    border-radius: 5px;
+    color: #333; /* Texto oscuro */
+    font-weight: bold;
+    display: block;
+    margin-bottom: 10px; /* Separación con el botón */
+    width: 100%;
+}
+
+/* Adaptabilidad para dispositivos móviles */
+@media screen and (max-width: 768px) {
+    .wrapper {
+        width: 90%; /* Reduce el ancho */
+        padding: 15px; /* Menos espacio interno */
+    }
+
+    button[type="submit"],
+    .existing-user button {
+        padding: 10px; /* Ajusta el tamaño de los botones */
+        font-size: 14px; /* Reduce el tamaño del texto */
+    }
+
+    .existing-user p {
+        font-size: 14px; /* Reduce el tamaño del texto */
+        padding: 8px; /* Ajusta el espacio interno */
+    }
 }
