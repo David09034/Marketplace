@@ -119,6 +119,59 @@ main {
     margin-top: 20px;
 }
 
+/* Estilo para el formulario de compra */
+#formularioCompra {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#formularioCompra h2 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+#formularioCompra form {
+    display: flex;
+    flex-direction: column;
+}
+
+#formularioCompra label {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+#formularioCompra input,
+#formularioCompra select,
+#formularioCompra textarea {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    width: 100%;
+}
+
+#formularioCompra button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    border-radius: 4px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+#formularioCompra button:hover {
+    background-color: #45a049;
+}
+
 /* Pie de página */
 .footer {
     background-color: #333;

@@ -28,10 +28,60 @@
             
             <div class="cart-summary">
                 <p id="total">Total: $0.00</p>
-                <button class="checkout-btn">Finalizar Compra</button>
+                <button class="checkout-btn" onclick="mostrarFormularioCompra()">Finalizar Compra</button>
             </div>
         </div>
     </main>
+
+    <!-- Formulario de Finalización de Compra (Oculto inicialmente) -->
+    <div id="formularioCompra" style="display:none;">
+        <h2>Formulario de Compra</h2>
+        <form id="compraForm">
+            <!-- Nombre Completo -->
+            <div>
+                <label for="nombre">Nombre Completo:</label>
+                <input type="text" id="nombre" name="nombre" required>
+            </div>
+            
+            <!-- Dirección -->
+            <div>
+                <label for="direccion">Dirección:</label>
+                <input type="text" id="direccion" name="direccion" required>
+            </div>
+            
+            <!-- Teléfono -->
+            <div>
+                <label for="telefono">Teléfono:</label>
+                <input type="tel" id="telefono" name="telefono" required>
+            </div>
+
+            <!-- Método de Pago -->
+            <div>
+                <label for="metodoPago">Método de Pago:</label>
+                <select id="metodoPago" name="metodoPago" required>
+                    <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+                    <option value="efectivo">Efectivo contra entrega</option>
+                </select>
+            </div>
+
+            <!-- Método de Entrega -->
+            <div>
+                <label for="metodoEntrega">Método de Entrega:</label>
+                <select id="metodoEntrega" name="metodoEntrega" required>
+                    <option value="domicilio">Domicilio</option>
+                    <option value="recogida">Recogida en tienda</option>
+                </select>
+            </div>
+
+            <!-- Instrucciones Especiales -->
+            <div>
+                <label for="instrucciones">Instrucciones Especiales:</label>
+                <textarea id="instrucciones" name="instrucciones" rows="4" placeholder="Escribe cualquier instrucción especial aquí..."></textarea>
+            </div>
+
+            <button type="submit">Confirmar Compra</button>
+        </form>
+    </div>
 
     <!-- Pie de página -->
     <footer class="footer">
@@ -77,7 +127,32 @@
             cargarCarrito(); 
         }
 
-        cargarCarrito();
+        // Mostrar el formulario de compra cuando se hace clic en "Finalizar Compra"
+        function mostrarFormularioCompra() {
+            document.querySelector('.cart-section').style.display = 'none';  // Ocultar la sección del carrito
+            document.getElementById('formularioCompra').style.display = 'block';  // Mostrar el formulario de compra
+        }
+
+        // Manejo del formulario de compra
+        document.getElementById('compraForm').addEventListener('submit', (event) => {
+            event.preventDefault();  // Evita el envío del formulario
+
+            const nombre = document.getElementById('nombre').value;
+            const direccion = document.getElementById('direccion').value;
+            const telefono = document.getElementById('telefono').value;
+            const metodoPago = document.getElementById('metodoPago').value;
+            const metodoEntrega = document.getElementById('metodoEntrega').value;
+            const instrucciones = document.getElementById('instrucciones').value;
+
+            // Aquí puedes hacer una llamada para procesar la compra en el servidor
+            console.log('Compra confirmada:', nombre, direccion, telefono, metodoPago, metodoEntrega, instrucciones);
+
+            // Redirigir a una página de confirmación (puedes cambiar la ruta)
+            window.location.href = '/confirmacion';  // Redirigir a la página de confirmación
+        });
+
+        // Cargar el carrito de productos al cargar la página
+        window.onload = cargarCarrito;
     </script> 
 </body>
 </html>
