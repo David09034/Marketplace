@@ -24,7 +24,7 @@
         <div class="panel active" id="productos">
             <h2>Administrar Productos</h2>
             <!-- Formulario para agregar o modificar productos -->
-            <form id="productForm" enctype="multipart/form-data">
+            <form id="productForm" enctype="multipart/form-data" onsubmit="insertarProducto(event)">
                 <div class="form-group">
                     <label for="nombre">Nombre del Producto:</label>
                     <input type="text" id="nombre" name="nombre" required>
@@ -44,7 +44,7 @@
                 
                 <div class="form-group">
                     <label for="Descripcion">Descripción del Producto:</label>
-                    <input type="text" id="Descripcion" name="Descripcion" required>
+                    <input type="text" id="Descripcion" name="descripcion" required>
                 </div>
                 <div class="form-group">
                     <label for="precio">Precio:</label>
@@ -126,50 +126,77 @@
     </footer>
 
     <script>
+        // Función para cargar los productos
         async function cargarProductos() {
-        const userId = sessionStorage.getItem('userId'); // Asegúrate de que este valor exista
-        console.log('UserID HTML: ' + userId);
+            const userId = sessionStorage.getItem('userId'); // Asegúrate de que este valor exista
+            console.log('UserID HTML: ' + userId);
 
-        if (!userId) {
-            alert('Por favor, inicia sesión.');
-            window.location.href = 'login.html';
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/productos/vendedor', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json' // Indicar que estamos enviando JSON
-                },
-                body: JSON.stringify({ 'userId': userId }) // Enviar el user-id en el cuerpo
-            });
-
-            if (!response.ok) {
-                throw new Error('Error al obtener productos');
+            if (!userId) {
+                alert('Por favor, inicia sesión.');
+                window.location.href = 'login.html';
+                return;
             }
 
-            const productos = await response.json();
-            console.log(productos); // Maneja los productos aquí (puedes agregarlos a la UI)
-        } catch (error) {
-            console.error('Error al cargar productos:', error);
-            alert('Error al cargar productos');
+            try {
+                const response = await fetch('/api/productos/vendedor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json' // Indicar que estamos enviando JSON
+                    },
+                    body: JSON.stringify({ 'userId': userId }) // Enviar el user-id en el cuerpo
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al obtener productos del vendedor');
+                }
+
+                const productos = await response.json();
+                console.log(productos);  // Verifica qué productos están siendo recibidos
+
+                if (productos && productos.length > 0) {
+                    const productList = document.getElementById('productList');
+                    productList.innerHTML = ''; // Limpiar la lista de productos actual
+
+                    productos.forEach(producto => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${producto.nombre}</td>
+                            <td>${producto.precio}</td>
+                            <td>${producto.descripcion}</td>
+                            <td>${producto.stock}</td>
+                            <td>${producto.categoria}</td>
+                            <td>
+                                <button onclick="editarProducto(${producto.id})">Editar</button>
+                                <button onclick="eliminarProducto(${producto.id})">Eliminar</button>
+                            </td>
+                        `;
+                        productList.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar productos del vendedor:', error);
+                alert('Error al cargar productos del vendedor');
+            }
         }
-}
-
-
-
-        // Llamar a la función para cargar los productos cuando la página esté lista
-        window.onload = cargarProductos;
 
         // Función para insertar un producto
         async function insertarProducto(event) {
             event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
 
+            const userId = sessionStorage.getItem('userId'); // Obtener el userId del sessionStorage
+            if (!userId) {
+                alert('No se encontró el ID de usuario');
+                return;
+            }
+
             const formData = new FormData(document.getElementById('productForm'));  // Crear un objeto FormData con los datos del formulario
 
+            // Agregar el userId al FormData
+            formData.append('productorID', userId);
+            console.log(formData);
+
             try {
-                const response = await fetch('/api/insert_productos', {  // URL correcta aquí
+                const response = await fetch('/api/productos', {  // URL correcta aquí
                     method: 'POST',
                     body: formData
                 });
@@ -201,6 +228,8 @@
                 console.log('Producto eliminado con ID: ' + productId);
             }
         }
+
+        window.onload = cargarProductos;
     </script>
 
 </body>

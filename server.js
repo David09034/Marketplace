@@ -267,22 +267,32 @@ app.get('/api/categorias', async (req, res) => {
 });
 
 // API para insertar un producto (con imagen en memoria)
-app.post('/api/insert_productos', upload.single('Imagen'), async (req, res) => {
+app.post('/api/productos', upload.single('Imagen'), async (req, res) => {
     const { nombre, descripcion, precio, Stock, categoria } = req.body;
-    const imagen = req.file ? req.file.buffer : null; // Usamos el buffer de la imagen en la memoria
+    const imagen = req.file ? req.file.buffer : null;  // Usamos el buffer de la imagen en la memoria
 
     // Verificación de los datos recibidos
     console.log('Datos recibidos:', { nombre, descripcion, precio, Stock, categoria });
 
+    // Suponiendo que el ID del productor (userId) lo tienes disponible en la sesión o en el cuerpo de la solicitud
+    const productorID = req.body.productorID; // Asegúrate de que este valor esté siendo enviado por el cliente
+
+    if (!productorID) {
+        return res.status(400).json({ error: 'ID de productor no proporcionado' });
+    }
+
     try {
-        const query = 'INSERT INTO Productos (Nombre, Descripcion, Precio, CantidadEnStock, Categoria, Imagen) VALUES (?, ?, ?, ?, ?, ?)';
-        await pool.query(query, [nombre, descripcion, precio, Stock, categoria, imagen]);
+        // Llamar al procedimiento almacenado para insertar el producto
+        const query = 'CALL InsertarProducto(?, ?, ?, ?, ?, ?, ?)';
+        await pool.query(query, [productorID, nombre, descripcion, precio, Stock, categoria, imagen]);
+
         res.status(201).json({ message: 'Producto insertado exitosamente' });
     } catch (err) {
         console.error('Error al insertar el producto:', err);
         res.status(500).json({ error: 'Error al insertar el producto' });
     }
 });
+
 
 // Asegúrate de usar el middleware para leer JSON en el cuerpo de la solicitud
 app.use(express.json());
@@ -302,7 +312,7 @@ app.post('/api/productos/vendedor', (req, res) => {
             console.error('Error al ejecutar procedimiento almacenado', err);
             return res.status(500).json({ message: 'Error interno del servidor' });
         }
-
+        console.log(results);
         const productos = results[0];  // El resultado se encuentra en la primera posición del array
 
         if (!productos || productos.length === 0) {
@@ -312,11 +322,6 @@ app.post('/api/productos/vendedor', (req, res) => {
         res.json(productos);  // Enviar los productos al cliente
     });
 });
-
-
-
-
-
 
 
 // Obtener la imagen de un producto
