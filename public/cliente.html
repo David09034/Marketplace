@@ -86,17 +86,16 @@
 
                 // Imprime la respuesta completa
                 const compras = await response.json();
-                console.log('Compras en el frontend ');
-                console.log(compras);  // Verifica cómo están estructurados los datos
+                console.log('Compras en el frontend:', compras);
 
                 const purchaseList = document.getElementById('purchaseList');
                 purchaseList.innerHTML = ''; // Limpiar la lista de compras
 
-                if (compras.length > 0) {
-                    compras.forEach(compra => {
+                if (compras[0] && compras[0].length > 0) { // Verifica si compras[0] tiene datos
+                    compras[0].forEach(compra => {
                         const fecha = new Date(compra.FechaOrden);
                         const fechaFormateada = `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
-                        
+
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td>${compra.OrdenID}</td>
@@ -112,6 +111,7 @@
                     row.innerHTML = `<td colspan="5">No has realizado compras aún.</td>`;
                     purchaseList.appendChild(row);
                 }
+
             } catch (error) {
                 console.error('Error al cargar compras del cliente:', error);
                 alert('Error al cargar compras del cliente');
