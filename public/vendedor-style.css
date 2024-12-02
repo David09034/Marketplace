@@ -87,7 +87,7 @@ footer {
     padding: 10px 0;
     background-color: #333;
     color: #fff;
-    position: fixed;
     width: 100%;
-    bottom: 0;
+    /* Eliminar el position: fixed; para que no se quede fijo al fondo */
+    margin-top: 20px; /* Deja un pequeño espacio entre el contenido principal y el pie de página */
 }
