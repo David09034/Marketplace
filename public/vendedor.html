@@ -183,6 +183,44 @@
                 alert('Error al cargar productos del vendedor');
             }
         }
+
+        async function insertarProducto(event) {
+    event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+
+    const form = document.getElementById('productForm');
+    const formData = new FormData(form);
+
+    // Agregar el ID del productor desde sessionStorage o cualquier otra fuente
+    const productorID = sessionStorage.getItem('userId'); // Suponiendo que el ID se almacena aquí
+
+    if (!productorID) {
+        alert('Error: No se encontró el ID del productor. Por favor inicia sesión nuevamente.');
+        return;
+    }
+
+    formData.append('productorID', productorID);
+
+    try {
+        const response = await fetch('/api/productos', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Error al insertar el producto');
+        }
+
+        const resultado = await response.json();
+        alert(resultado.message || 'Producto insertado exitosamente');
+        form.reset(); // Limpiar el formulario después de la inserción
+        cargarProductos(); // Recargar la lista de productos
+    } catch (error) {
+        console.error('Error al insertar producto:', error);
+        alert('Hubo un problema al insertar el producto. Detalles: ' + error.message);
+    }
+}
+
     
         window.onload = cargarProductos;
     </script>    

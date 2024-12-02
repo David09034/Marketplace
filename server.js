@@ -6,7 +6,7 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 3000;
-const mod_var = 'D';
+const mod_var = 'M';
 
 const poolConfig = mod_var === 'D' ? {
     host: 'localhost',
