@@ -251,8 +251,8 @@ app.delete('/api/carrito/:id', (req, res) => {
         req.session.carrito = req.session.carrito.filter(item => item.producto_id !== productId);
         res.status(200).json({ message: 'Producto eliminado del carrito' });
     } else {
-        res.status(404).json({ message: 'Carrito vacío' });
-    }
+        res.status(404).json({ message: 'Carrito vacío' });
+    }
 });
 
 // Obtener categorías
