@@ -26,10 +26,9 @@
                     <tr>
                         <th>ID de Compra</th>
                         <th>Estado</th>
-                        <th>Producto</th>
-                        <th>Precio</th>
-                        <th>Cantidad</th>
+                        <th>Productos</th>
                         <th>Fecha</th>
+                        <th>Pagar</th>
                     </tr>
                 </thead>
                 <tbody id="purchaseList">
@@ -57,6 +56,43 @@
                 <button type="submit" class="btn">Actualizar Datos</button>
             </form>
         </div>
+        <div class="panel" id="formularioCompra" style="display:none;">
+            <h2>Formulario de Compra</h2>
+            <form id="compraForm">
+                <div>
+                    <label for="nombre">Nombre Completo:</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+                <div>
+                    <label for="direccion">Dirección:</label>
+                    <input type="text" id="direccion" name="direccion" required>
+                </div>
+                <div>
+                    <label for="telefono">Teléfono:</label>
+                    <input type="tel" id="telefono" name="telefono" required>
+                </div>
+                <div>
+                    <label for="metodoPago">Método de Pago:</label>
+                    <select id="metodoPago" name="metodoPago" required>
+                        <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+                        <option value="efectivo">Efectivo contra entrega</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="metodoEntrega">Método de Entrega:</label>
+                    <select id="metodoEntrega" name="metodoEntrega" required>
+                        <option value="domicilio">Domicilio</option>
+                        <option value="recogida">Recogida en tienda</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="instrucciones">Instrucciones Especiales:</label>
+                    <textarea id="instrucciones" name="instrucciones" rows="4" placeholder="Escribe cualquier instrucción especial aquí..."></textarea>
+                </div>
+                <button type="submit">Confirmar Compra</button>
+            </form>
+        </div>
+        
     </div>
 
     <footer>
@@ -65,60 +101,152 @@
 
     <script>
         async function cargarCompras() {
-            const clienteId = sessionStorage.getItem('userId'); // Usamos 'userId' que se almacena en sessionStorage
+    const clienteId = sessionStorage.getItem('userId'); // Usamos 'userId' que se almacena en sessionStorage
 
-            if (!clienteId) {
-                alert('Por favor, inicia sesión.');
-                window.location.href = 'login.html';
-                return;
+    if (!clienteId) {
+        alert('Por favor, inicia sesión.');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/compras/${clienteId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
             }
+        });
 
-            try {
-                const response = await fetch(`/api/compras/${clienteId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Error al obtener compras del cliente');
-                }
-
-                // Imprime la respuesta completa
-                const compras = await response.json();
-                console.log('Compras en el frontend:', compras);
-
-                const purchaseList = document.getElementById('purchaseList');
-                purchaseList.innerHTML = ''; // Limpiar la lista de compras
-
-                if (compras[0] && compras[0].length > 0) { // Verifica si compras[0] tiene datos
-                    compras[0].forEach(compra => {
-                        const fecha = new Date(compra.FechaOrden);
-                        const fechaFormateada = `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
-
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${compra.OrdenID}</td>
-                            <td>${compra.Estado}</td>
-                            <td>${compra.Producto}</td>
-                            <td>$${compra.Precio}</td>
-                            <td>${compra.Cantidad}</td>
-                            <td>${fechaFormateada}</td>
-                        `;
-                        purchaseList.appendChild(row);
-                    });
-                } else {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `<td colspan="5">No has realizado compras aún.</td>`;
-                    purchaseList.appendChild(row);
-                }
-
-            } catch (error) {
-                console.error('Error al cargar compras del cliente:', error);
-                alert('Error al cargar compras del cliente');
-            }
+        if (!response.ok) {
+            throw new Error('Error al obtener compras del cliente');
         }
+
+        const compras = await response.json();
+        console.log('Compras encontradas:', compras);
+
+        const purchaseList = document.getElementById('purchaseList');
+        purchaseList.innerHTML = ''; // Limpiar la lista de compras
+
+        if (compras[0] && compras[0].length > 0) {
+            // Agrupar por OrdenID
+            const comprasAgrupadas = compras[0].reduce((acc, compra) => {
+                if (!acc[compra.OrdenID]) {
+                    acc[compra.OrdenID] = {
+                        Estado: compra.Estado,
+                        FechaOrden: compra.FechaOrden,
+                        Productos: []
+                    };
+                }
+                acc[compra.OrdenID].Productos.push(compra);
+                return acc;
+            }, {});
+
+            // Generar filas por cada OrdenID
+            Object.keys(comprasAgrupadas).forEach(ordenId => {
+                const orden = comprasAgrupadas[ordenId];
+                const fecha = new Date(orden.FechaOrden);
+                const fechaFormateada = `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
+
+                const productosHTML = orden.Productos.map(producto => `
+                    <div>${producto.Producto} (Cantidad: ${producto.Cantidad}, Precio: $${producto.Precio})</div>
+                `).join('');
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${ordenId}</td>
+                    <td>${orden.Estado}</td>
+                    <td>${productosHTML}</td>
+                    <td>${fechaFormateada}</td>
+                    <td>
+                        <button 
+                            class="pay-btn" 
+                            data-orden-id="${ordenId}" 
+                            ${orden.Estado === 'Pagada' ? 'disabled' : ''}
+                        >
+                            ${orden.Estado === 'Pagada' ? 'Pagada' : 'Pagar'}
+                        </button>
+                    </td>
+                `;
+                purchaseList.appendChild(row);
+            });
+
+            // Asignar eventos a los botones de pago
+            const payButtons = document.querySelectorAll('.pay-btn');
+            payButtons.forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const ordenId = e.target.getAttribute('data-orden-id');
+                    await pagarOrden(ordenId);
+                });
+            });
+        } else {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td colspan="5">No has realizado compras aún.</td>`;
+            purchaseList.appendChild(row);
+        }
+    } catch (error) {
+        console.error('Error al cargar compras del cliente:', error);
+        alert('Error al cargar compras del cliente');
+    }
+}
+
+async function pagarOrden(ordenId) {
+    // Cambiar el panel visible al formulario de compra
+    document.querySelector('.panel.active').classList.remove('active');
+    const formularioCompra = document.getElementById('formularioCompra');
+    formularioCompra.style.display = 'block';
+    formularioCompra.classList.add('active');
+
+    // Prepara el formulario para capturar la orden actual
+    const compraForm = document.getElementById('compraForm');
+    compraForm.dataset.ordenId = ordenId; // Asignar OrdenID al formulario
+
+    console.log(`Formulario abierto para OrdenID: ${ordenId}`);
+
+    // Escuchar el envío del formulario
+    compraForm.onsubmit = async function (event) {
+        event.preventDefault(); // Prevenir envío por defecto
+
+        // Capturar datos del formulario
+        const formData = new FormData(compraForm);
+        const data = {
+            ordenId: compraForm.dataset.ordenId,
+            nombre: formData.get('nombre'),
+            direccion: formData.get('direccion'),
+            telefono: formData.get('telefono'),
+            metodoPago: formData.get('metodoPago'),
+            metodoEntrega: formData.get('metodoEntrega'),
+            instrucciones: formData.get('instrucciones'),
+        };
+
+        try {
+            // Enviar datos al backend
+            const response = await fetch('/api/ordenes/confirmar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al confirmar la compra');
+            }
+
+            const result = await response.json();
+            alert(result.message);
+
+            // Volver al panel de compras
+            formularioCompra.style.display = 'none';
+            document.getElementById('compras').classList.add('active');
+            cargarCompras(); // Recargar las compras
+        } catch (error) {
+            console.error('Error al confirmar la compra:', error);
+            alert('Error al confirmar la compra. Inténtalo de nuevo.');
+        }
+    };
+}
+
+
+
+//window.onload = cargarCompras;
 
 
 
