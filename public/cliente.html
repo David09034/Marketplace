@@ -25,6 +25,7 @@
                 <thead>
                     <tr>
                         <th>ID de Compra</th>
+                        <th>Estado</th>
                         <th>Producto</th>
                         <th>Precio</th>
                         <th>Cantidad</th>
@@ -99,6 +100,7 @@
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td>${compra.OrdenID}</td>
+                            <td>${compra.Estado}</td>
                             <td>${compra.Producto}</td>
                             <td>$${compra.Precio}</td>
                             <td>${compra.Cantidad}</td>
