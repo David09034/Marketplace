@@ -8,14 +8,14 @@
 </head>
 <body>
     <div class="wrapper">
-        <form action="/api/login" method="post">
+        <form id="loginForm">
             <h1>Login</h1>
             <div class="input-box">
-                <input type="text" name="email" placeholder="Correo" required>
+                <input type="text" id="email" name="email" placeholder="Correo" required>
                 <span class="icon">👤</span> 
             </div>
             <div class="input-box">
-                <input type="password" name="contraseña" placeholder="Contraseña" required>
+                <input type="password" id="contraseña" name="contraseña" placeholder="Contraseña" required>
                 <span class="icon">🔒</span> 
             </div>
             <div class="remember-forgot">
@@ -28,5 +28,43 @@
             </div>
         </form>
     </div>
+
+    <script>
+        // Manejar el envío del formulario
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const contraseña = document.getElementById('contraseña').value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        email: email,
+                        contraseña: contraseña
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Guardar los datos en sessionStorage
+                    sessionStorage.setItem('userId', data.userId);
+                    sessionStorage.setItem('userRole', data.userRole);  
+                  
+                    // Redirigir al usuario a la página principal
+                    window.location.href = '/Home.html';
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Error en la solicitud:', error);
+            }
+        });
+    </script>
 </body>
 </html>

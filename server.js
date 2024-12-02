@@ -6,7 +6,7 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 3001;
-const mod_var = 'D';
+const mod_var = 'M';
 
 const poolConfig = mod_var === 'D' ? {
     host: 'localhost',
@@ -17,9 +17,9 @@ const poolConfig = mod_var === 'D' ? {
     connectionLimit: 10,
     queueLimit: 0
 } : {
-    host: '192.168.1.3',
-    user: 'matheo',
-    password: 'admin1234',
+    host: '192.168.1.16',
+    user: 'admin1',
+    password: 'admin1',
     database: 'tienda',
     waitForConnections: true,
     connectionLimit: 10,
@@ -54,7 +54,7 @@ app.get('/', (req, res) => {
 // Ruta para obtener productos desde la base de datos
 app.get('/api/productos', async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM productos');
+        const [rows] = await pool.query('SELECT * FROM Productos');
         res.json(rows);
     } catch (err) {
         console.error(err);
@@ -67,7 +67,7 @@ app.get('/producto/:id', async (req, res) => {
     const productId = req.params.id;
 
     try {
-        const [rows] = await pool.query('SELECT * FROM productos WHERE ProductoID = ?', [productId]);
+        const [rows] = await pool.query('SELECT * FROM Productos WHERE ProductoID = ?', [productId]);
 
         if (rows.length > 0) {
             const product = rows[0];
@@ -174,7 +174,7 @@ app.post('/api/registro', express.json(), async (req, res) => {
             return res.status(400).json({ error: 'El correo electrónico ya está registrado' });
         }
 
-        res.redirect('/Home.html');
+        res.redirect('/Index.html');
     } catch (error) {
         console.error("Error al registrar el usuario:", error);
         res.status(500).json({ error: 'Error al registrar el usuario' });
@@ -212,10 +212,12 @@ app.post('/api/login', express.urlencoded({ extended: true }), async (req, res) 
             const match = await bcrypt.compare(contraseña, hashedPassword);
 
             if (match) {
-                // Si las contraseñas coinciden, iniciar sesión
-                req.session.userId = userId;
-                req.session.userRole = userRole;
-                res.redirect('/Home.html');
+                // Si las contraseñas coinciden, responder con los datos del usuario
+                res.json({
+                    userId: userId,
+                    userRole: userRole,
+                    message: 'Inicio de sesión exitoso'
+                });
             } else {
                 // Si no coinciden, devolver error
                 res.status(401).json({ message: 'Contraseña incorrecta' });
@@ -228,6 +230,7 @@ app.post('/api/login', express.urlencoded({ extended: true }), async (req, res) 
         res.status(500).json({ error: 'Error al iniciar sesión' });
     }
 });
+
 
 
 
@@ -264,7 +267,7 @@ app.get('/api/categorias', async (req, res) => {
 });
 
 // API para insertar un producto (con imagen en memoria)
-app.post('/api/productos', upload.single('Imagen'), async (req, res) => {
+app.post('/api/insert_productos', upload.single('Imagen'), async (req, res) => {
     const { nombre, descripcion, precio, Stock, categoria } = req.body;
     const imagen = req.file ? req.file.buffer : null; // Usamos el buffer de la imagen en la memoria
 
@@ -280,6 +283,40 @@ app.post('/api/productos', upload.single('Imagen'), async (req, res) => {
         res.status(500).json({ error: 'Error al insertar el producto' });
     }
 });
+
+// Asegúrate de usar el middleware para leer JSON en el cuerpo de la solicitud
+app.use(express.json());
+//API Producto por vendedor
+app.post('/api/productos/vendedor', (req, res) => {
+    const userId = req.body['userId'];  // Obtener el parámetro user-id desde el cuerpo de la solicitud
+
+    console.log('UserID API: ' + userId);
+
+    if (!userId || isNaN(userId)) {
+        return res.status(400).json({ message: 'ID de usuario inválido' });
+    }
+
+    // Llamar al procedimiento almacenado para obtener los productos del vendedor usando el userId
+    pool.query('CALL Get_Productos_Vendedor(?)', [userId], (err, results) => {
+        if (err) {
+            console.error('Error al ejecutar procedimiento almacenado', err);
+            return res.status(500).json({ message: 'Error interno del servidor' });
+        }
+
+        const productos = results[0];  // El resultado se encuentra en la primera posición del array
+
+        if (!productos || productos.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron productos para este vendedor' });
+        }
+
+        res.json(productos);  // Enviar los productos al cliente
+    });
+});
+
+
+
+
+
 
 
 // Obtener la imagen de un producto
@@ -307,7 +344,12 @@ app.get('/api/producto/imagen/:id', async (req, res) => {
     }
 });
 
+
+
+
 // Iniciar el servidor
 app.listen(PORT, () => {
     console.log(`Servidor iniciado en http://localhost:${PORT}`);
 });
+
+

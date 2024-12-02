@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marketplace Chicchilan - Inicio</title>
     <link rel="stylesheet" href="styles.css">
+
+    <script>
+        // Verificar si el usuario es productor y mostrar el menú "Mis Productos"
+        document.addEventListener('DOMContentLoaded', function() {
+            // Recuperar el rol del usuario desde sessionStorage
+            const userRole = sessionStorage.getItem('userRole');
+
+            if (userRole === 'Productor') {
+                // Si el usuario es productor, mostrar el enlace "Mis Productos"
+                const navLinks = document.querySelector('.nav-links');
+                const misProductosMenuItem = document.createElement('li');
+                misProductosMenuItem.innerHTML = '<a href="vendedor.html">Mis Productos</a>';
+                navLinks.appendChild(misProductosMenuItem);
+            }
+        });
+    </script>
 </head>
 <body>
     <!-- Barra de Navegación -->
@@ -16,8 +32,7 @@
                 <li><a href="cart.html">Carrito</a></li>
                 <li><a href="nosotros.html">Nosotros</a></li>
                 <li><a href="product.html">Productos</a></li>
-                <li><a href="vendedor.html">Mis Productos</a></li>
-
+                <!-- "Mis Productos" solo se añadirá dinámicamente si el usuario es productor -->
             </ul>
         </nav>
     </header>
@@ -61,7 +76,6 @@
                 productosDiv.appendChild(productoDiv);
             });
         }
-
 
         // Función para agregar productos al carrito
         async function agregarAlCarrito(productId, nombre, precio, imagen) {

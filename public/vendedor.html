@@ -32,9 +32,16 @@
                 <div class="form-group">
                     <label for="categoria">Categoría del Producto:</label>
                     <select id="categoria" name="categoria" required>
-                        <!-- Las categorías se cargarán automáticamente aquí -->
+                        <option value="Frutas">Frutas</option>
+                        <option value="Lácteos">Lácteos</option>
+                        <option value="Ropa">Ropa</option>
+                        <option value="Verduras">Verduras</option>
+                        <option value="Artículos Artesanales">Artículos Artesanales</option>
+                        <option value="Cuidado Personal">Cuidado Personal</option>
+                        <option value="Bebidas">Bebidas</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
                     <label for="Descripcion">Descripción del Producto:</label>
                     <input type="text" id="Descripcion" name="Descripcion" required>
@@ -63,9 +70,12 @@
                     <tr>
                         <th>Nombre</th>
                         <th>Precio</th>
+                        <th>Descripción</th>
+                        <th>Stock</th>
+                        <th>Categoría</th>
                         <th>Acciones</th>
                     </tr>
-                </thead>
+                </thead>                
                 <tbody id="productList">
                     <!-- Aquí se listarán los productos -->
                 </tbody>
@@ -116,64 +126,82 @@
     </footer>
 
     <script>
-        async function cargarCategorias() {
-    // Definir categorías estáticas
-    const categorias = [
-    { Categoria: 'Frutas' }, // Aquí entraría moras y otros productos frutales
-        { Categoria: 'Lácteos' }, // Para queso, leche, etc.
-        { Categoria: 'Ropa' }, // Productos de vestimenta
-        { Categoria: 'Verduras' }, // Productos vegetales
-        { Categoria: 'Artículos Artesanales' }, // Productos hechos a mano
-        { Categoria: 'Cuidado Personal' }, // Productos como jabones, cremas, etc.
-        { Categoria: 'Bebidas' }, // Incluye jugos, leche, agua, etc.
-    ];
+        async function cargarProductos() {
+        const userId = sessionStorage.getItem('userId'); // Asegúrate de que este valor exista
+        console.log('UserID HTML: ' + userId);
 
-    try {
-        const categoriaSelect = document.getElementById('categoria');
-        
-        // Agregar las categorías estáticas al select
-        categorias.forEach(categoria => {
-            const option = document.createElement('option');
-            option.value = categoria.Categoria;
-            option.textContent = categoria.Categoria;
-            categoriaSelect.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error:', error);
-    }
+        if (!userId) {
+            alert('Por favor, inicia sesión.');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/productos/vendedor', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json' // Indicar que estamos enviando JSON
+                },
+                body: JSON.stringify({ 'userId': userId }) // Enviar el user-id en el cuerpo
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al obtener productos');
+            }
+
+            const productos = await response.json();
+            console.log(productos); // Maneja los productos aquí (puedes agregarlos a la UI)
+        } catch (error) {
+            console.error('Error al cargar productos:', error);
+            alert('Error al cargar productos');
+        }
 }
 
-        // Cargar las categorías cuando la página esté lista
-        window.onload = cargarCategorias;
 
-        // Manejo del formulario para agregar productos
-        document.getElementById('productForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
 
-            const formData = new FormData(event.target);
-            
+        // Llamar a la función para cargar los productos cuando la página esté lista
+        window.onload = cargarProductos;
+
+        // Función para insertar un producto
+        async function insertarProducto(event) {
+            event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+
+            const formData = new FormData(document.getElementById('productForm'));  // Crear un objeto FormData con los datos del formulario
+
             try {
-                const response = await fetch('/api/productos', {
+                const response = await fetch('/api/insert_productos', {  // URL correcta aquí
                     method: 'POST',
                     body: formData
                 });
 
+                // Verificar si la respuesta fue exitosa
                 if (!response.ok) {
-                    throw new Error('Error al insertar el producto');
+                    throw new Error('Error al insertar producto');
                 }
 
-                // Mostrar mensaje de éxito
-                const mensaje = document.getElementById('mensaje');
-                mensaje.textContent = 'Producto insertado exitosamente';
-                mensaje.style.display = 'block';
-                
-                // Limpiar el formulario
-                event.target.reset();
+                const result = await response.json();
+                alert(result.message);  // Mostrar un mensaje de éxito
+                cargarProductos();  // Volver a cargar la lista de productos
             } catch (error) {
-                console.error('Error:', error);
-                alert('Error al insertar el producto');
+                console.error('Error al insertar producto:', error);
+                alert('Error al insertar producto');
             }
-        });
+        }
+
+        // Función para editar un producto
+        function editarProducto(productId) {
+            alert('Editar producto con ID: ' + productId);
+            // Aquí puedes implementar la lógica para editar un producto
+        }
+
+        // Función para eliminar un producto
+        function eliminarProducto(productId) {
+            if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
+                // Lógica para eliminar el producto
+                console.log('Producto eliminado con ID: ' + productId);
+            }
+        }
     </script>
+
 </body>
 </html>
