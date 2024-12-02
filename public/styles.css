@@ -115,6 +115,42 @@ body {
     background-color: #ffd700;
 }
 
+.search-filter {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+/*Barra de busqueda y categorias */
+#search-bar {
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#category-filter {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#search-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4CAF50; /* Color de fondo */
+    color: white; /* Color del texto */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#search-button:hover {
+    background-color: #45a049; /* Color de fondo al pasar el cursor */
+}
+
+
 /* Pie de página */
 .footer {
     background-color: #333;
@@ -123,3 +159,4 @@ body {
     padding: 1rem;
     font-size: 0.9rem;
 }
+

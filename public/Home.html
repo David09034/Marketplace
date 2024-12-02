@@ -39,10 +39,32 @@
 
     <main class="product-section">
         <h2>Productos Destacados</h2>
+        <!-- Barra de búsqueda y filtro -->
+        <div class="search-filter">
+            <input 
+                type="text" 
+                id="search-bar" 
+                placeholder="Buscar productos..." 
+                oninput="filtrarProductos()"
+            >
+            <select id="category-filter" onchange="filtrarProductos()">
+                <option value="all">Todas las categorías</option>
+                <!-- Las categorías se pueden cargar dinámicamente -->
+                <option value="Frutas">Frutas</option>
+                        <option value="Lácteos">Lácteos</option>
+                        <option value="Ropa">Ropa</option>
+                        <option value="Verduras">Verduras</option>
+                        <option value="Artículos Artesanales">Artículos Artesanales</option>
+                        <option value="Cuidado Personal">Cuidado Personal</option>
+                        <option value="Bebidas">Bebidas</option>
+            </select>
+            <button id="search-button" onclick="filtrarProductos()">Buscar</button>
+        </div>
         <div class="product-grid" id="productos">
             <!-- Los productos se agregarán dinámicamente aquí -->
         </div>
     </main>
+    
 
     <!-- Pie de página -->
     <footer class="footer">
@@ -50,20 +72,23 @@
     </footer>
 
     <script>
+       let productosCargados = []; // Para almacenar los productos cargados
+
         async function cargarProductos() {
             const response = await fetch('/api/productos');
-            const productos = await response.json();
-            console.log(productos); // Verifica la estructura de los datos
+            productosCargados = await response.json(); // Guardar los productos cargados
+            mostrarProductos(productosCargados); // Mostrar todos los productos
+        }
+
+        function mostrarProductos(productos) {
             const productosDiv = document.getElementById('productos');
+            productosDiv.innerHTML = ''; // Limpiar productos existentes
 
             productos.forEach(producto => {
-                console.log(producto); // Verifica cada producto individual
                 const productoDiv = document.createElement('div');
                 productoDiv.classList.add('product-card');
 
-                // Aquí la imagen se recupera desde la base de datos usando su ID
                 const imagenUrl = `/api/producto/imagen/${producto.ProductoID}`;
-
                 productoDiv.innerHTML = `
                     <a href="product.html?id=${producto.ProductoID}" style="text-decoration: none; color: inherit;">
                         <img src="${imagenUrl}" alt="${producto.Nombre}">
@@ -76,6 +101,22 @@
                 productosDiv.appendChild(productoDiv);
             });
         }
+
+        function filtrarProductos() {
+            const textoBusqueda = document.getElementById('search-bar').value.toLowerCase();
+            const categoriaSeleccionada = document.getElementById('category-filter').value;
+
+            const productosFiltrados = productosCargados.filter(producto => {
+                const coincideTexto = producto.Nombre.toLowerCase().includes(textoBusqueda);
+                const coincideCategoria = categoriaSeleccionada === 'all' || producto.Categoria === categoriaSeleccionada;
+                return coincideTexto && coincideCategoria;
+            });
+
+            mostrarProductos(productosFiltrados);
+        }
+
+// Llama a cargarProductos al cargar la página
+cargarProductos();
 
         // Función para agregar productos al carrito
         async function agregarAlCarrito(productId, nombre, precio, imagen) {
@@ -103,7 +144,7 @@
         }
 
         // Llamar a la función para cargar los productos cuando la página cargue
-        cargarProductos();
+        //cargarProductos();
     </script>  
 </body>
 </html>

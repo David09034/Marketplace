@@ -17,7 +17,7 @@ const poolConfig = mod_var === 'D' ? {
     connectionLimit: 10,
     queueLimit: 0
 } : {
-    host: '192.168.1.16',
+    host: '192.168.187.51',
     user: 'admin1',
     password: 'admin1',
     database: 'tienda',
