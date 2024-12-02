@@ -6,7 +6,7 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 3001;
-const mod_var = 'M';
+const mod_var = 'D';
 
 const poolConfig = mod_var === 'D' ? {
     host: 'localhost',
@@ -79,6 +79,7 @@ app.get('/producto/:id', async (req, res) => {
                 precio: product.Precio,
                 imagenUrl: `/api/producto/imagen/${productId}`,  // Usar la URL de la imagen
             });
+            
         } else {
             res.status(404).json({ error: 'Producto no encontrado' });
         }
@@ -98,6 +99,7 @@ app.post('/api/carrito', express.json(), (req, res) => {
     }
 
     let productoExistente = req.session.carrito.find(item => item.producto_id === producto_id);
+    console.log(producto_id)
 
     if (productoExistente) {
         productoExistente.cantidad += cantidad;
@@ -106,12 +108,12 @@ app.post('/api/carrito', express.json(), (req, res) => {
             producto_id,
             nombre,
             precio,
-            imagen,
+            imagen: `/api/producto/imagen/${producto_id}`,
             cantidad
         });
     }
-
-    res.status(201).json({ message: 'Producto agregado al carrito' });
+    
+    res.status(201).json({ message: 'Producto agregado al carrito'  });
 });
 
 
@@ -255,16 +257,6 @@ app.delete('/api/carrito/:id', (req, res) => {
     }
 });
 
-// Obtener categorías
-app.get('/api/categorias', async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT DISTINCT Categoria FROM Productos WHERE Categoria IS NOT NULL');
-        res.json(rows);
-    } catch (err) {
-        console.error('Error al obtener categorías:', err);
-        res.status(500).json({ error: 'Error al obtener categorías' });
-    }
-});
 
 // API para insertar un producto (con imagen en memoria)
 app.post('/api/productos', upload.single('Imagen'), async (req, res) => {
