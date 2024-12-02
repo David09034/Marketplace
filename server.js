@@ -5,8 +5,8 @@ const mysql = require('mysql2/promise');  // Importa mysql2 para promesas
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const app = express();
-const PORT = 3001;
-const mod_var = 'M';
+const PORT = 3000;
+const mod_var = 'D';
 
 const poolConfig = mod_var === 'D' ? {
     host: 'localhost',
@@ -99,7 +99,6 @@ app.post('/api/carrito', express.json(), (req, res) => {
     }
 
     let productoExistente = req.session.carrito.find(item => item.producto_id === producto_id);
-    console.log(producto_id)
 
     if (productoExistente) {
         productoExistente.cantidad += cantidad;
@@ -286,34 +285,36 @@ app.post('/api/productos', upload.single('Imagen'), async (req, res) => {
 });
 
 
-// Asegúrate de usar el middleware para leer JSON en el cuerpo de la solicitud
-app.use(express.json());
-//API Producto por vendedor
-app.post('/api/productos/vendedor', (req, res) => {
-    const userId = req.body['userId'];  // Obtener el parámetro user-id desde el cuerpo de la solicitud
+app.get('/productos/:userId', async (req, res) => {
+    const userId = req.params.userId;
+    console.log('userId recibido en el backend:', userId);  // Log para verificar el userId recibido
 
-    console.log('UserID API: ' + userId);
+    try {
+        // Obtener el ProductorID
+        const [productorRows] = await pool.query('SELECT ProductorID FROM Productores WHERE UsuarioID = ?', [userId]);
 
-    if (!userId || isNaN(userId)) {
-        return res.status(400).json({ message: 'ID de usuario inválido' });
+        if (productorRows.length === 0) {
+            return res.status(404).json({ error: 'No se encontró productor para este usuario' });
+        }
+
+        const productorId = productorRows[0].ProductorID;
+        console.log('ProductorID encontrado:', productorId);
+
+        // Ahora obtenemos los productos usando el ProductorID
+        const [productoRows] = await pool.query('SELECT * FROM Productos WHERE ProductorID = ?', [productorId]);
+        console.log('Productos obtenidos:', productoRows);
+
+        if (productoRows.length > 0) {
+            res.json(productoRows);  // Enviar productos encontrados
+        } else {
+            res.status(404).json({ error: 'No se encontraron productos para este productor' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al obtener productos' });
     }
-
-    // Llamar al procedimiento almacenado para obtener los productos del vendedor usando el userId
-    pool.query('CALL Get_Productos_Vendedor(?)', [userId], (err, results) => {
-        if (err) {
-            console.error('Error al ejecutar procedimiento almacenado', err);
-            return res.status(500).json({ message: 'Error interno del servidor' });
-        }
-        console.log(results);
-        const productos = results[0];  // El resultado se encuentra en la primera posición del array
-
-        if (!productos || productos.length === 0) {
-            return res.status(404).json({ message: 'No se encontraron productos para este vendedor' });
-        }
-
-        res.json(productos);  // Enviar los productos al cliente
-    });
 });
+
 
 
 // Obtener la imagen de un producto
@@ -363,9 +364,6 @@ app.get('/api/compras/:clienteId', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener las compras del cliente' });
     }
 });
-
-
-
 
 
 

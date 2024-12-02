@@ -128,109 +128,64 @@
     <script>
         // Función para cargar los productos
         async function cargarProductos() {
-            const userId = sessionStorage.getItem('userId'); // Asegúrate de que este valor exista
-            console.log('UserID HTML: ' + userId);
-
+            const userId = sessionStorage.getItem('userId');
+            console.log('UserID HTML: ' + userId);  // Verificamos el userId del sessionStorage
+    
             if (!userId) {
                 alert('Por favor, inicia sesión.');
                 window.location.href = 'login.html';
                 return;
             }
-
+    
             try {
-                const response = await fetch('/api/productos/vendedor', {
-                    method: 'POST',
+                console.log(`Haciendo fetch a /productos/${userId}`);
+                const response = await fetch(`/productos/${userId}`, {
+                    method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json' // Indicar que estamos enviando JSON
-                    },
-                    body: JSON.stringify({ 'userId': userId }) // Enviar el user-id en el cuerpo
+                        'Content-Type': 'application/json',
+                    }
                 });
-
+    
+                console.log('Respuesta del servidor:', response);  // Verifica la respuesta del servidor
+    
                 if (!response.ok) {
                     throw new Error('Error al obtener productos del vendedor');
                 }
-
+    
                 const productos = await response.json();
-                console.log(productos);  // Verifica qué productos están siendo recibidos
-
+                console.log('Productos recibidos:', productos);  // Verifica los productos recibidos
+    
                 if (productos && productos.length > 0) {
                     const productList = document.getElementById('productList');
                     productList.innerHTML = ''; // Limpiar la lista de productos actual
-
+    
                     productos.forEach(producto => {
+                        console.log(`Añadiendo producto: ${producto.Nombre}`);  // Log de cada producto
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td>${producto.nombre}</td>
-                            <td>${producto.precio}</td>
-                            <td>${producto.descripcion}</td>
-                            <td>${producto.stock}</td>
-                            <td>${producto.categoria}</td>
+                            <td>${producto.Nombre}</td>
+                            <td>${producto.Precio}</td>
+                            <td>${producto.Descripcion}</td>
+                            <td>${producto.Stock}</td>
+                            <td>${producto.Categoria}</td>
                             <td>
-                                <button onclick="editarProducto(${producto.id})">Editar</button>
-                                <button onclick="eliminarProducto(${producto.id})">Eliminar</button>
+                                <button onclick="editarProducto(${producto.ProductoID})">Editar</button>
+                                <button onclick="eliminarProducto(${producto.ProductoID})">Eliminar</button>
                             </td>
                         `;
                         productList.appendChild(row);
                     });
+                } else {
+                    console.log('No se encontraron productos para mostrar.');
                 }
             } catch (error) {
                 console.error('Error al cargar productos del vendedor:', error);
                 alert('Error al cargar productos del vendedor');
             }
         }
-
-        // Función para insertar un producto
-        async function insertarProducto(event) {
-            event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
-
-            const userId = sessionStorage.getItem('userId'); // Obtener el userId del sessionStorage
-            if (!userId) {
-                alert('No se encontró el ID de usuario');
-                return;
-            }
-
-            const formData = new FormData(document.getElementById('productForm'));  // Crear un objeto FormData con los datos del formulario
-
-            // Agregar el userId al FormData
-            formData.append('productorID', userId);
-            console.log(formData);
-
-            try {
-                const response = await fetch('/api/productos', {  // URL correcta aquí
-                    method: 'POST',
-                    body: formData
-                });
-
-                // Verificar si la respuesta fue exitosa
-                if (!response.ok) {
-                    throw new Error('Error al insertar producto');
-                }
-
-                const result = await response.json();
-                alert(result.message);  // Mostrar un mensaje de éxito
-                cargarProductos();  // Volver a cargar la lista de productos
-            } catch (error) {
-                console.error('Error al insertar producto:', error);
-                alert('Error al insertar producto');
-            }
-        }
-
-        // Función para editar un producto
-        function editarProducto(productId) {
-            alert('Editar producto con ID: ' + productId);
-            // Aquí puedes implementar la lógica para editar un producto
-        }
-
-        // Función para eliminar un producto
-        function eliminarProducto(productId) {
-            if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-                // Lógica para eliminar el producto
-                console.log('Producto eliminado con ID: ' + productId);
-            }
-        }
-
+    
         window.onload = cargarProductos;
-    </script>
+    </script>    
 
 </body>
 </html>
