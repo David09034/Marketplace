@@ -6,6 +6,17 @@ body, h1, h2, h3, p, ul, li, a, button {
     font-family: 'Raleway', sans-serif;
 }
 
+.banner-section {
+    background-image: url('static/main.webp'); /* Usa el archivo .webp */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 2rem 1rem;
+    color: #f63535;
+    
+}
+
+
 /* Centrar el título de "Nuestros Productos Destacados" */
 h2 {
     text-align: center;
@@ -72,18 +83,30 @@ body {
 .welcome {
     text-align: center;
     padding: 30px 20px;
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo negro con opacidad */
+    border-radius: 10px; /* Opcional, para dar bordes redondeados */
 }
 
 .welcome h2 {
     font-size: 1.8rem;
     margin-bottom: 15px;
-    color: #1a3d2f;
+    color: #e0e02d;
 }
 
 .welcome p {
-    font-size: 1rem;
-    color: #4caf50; /* Verde brillante */
+    font-size: 1.8rem;
+    color: #1859ef; /* Verde brillante */
 }
+.welcome p2 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: #e43e28;
+}
+
+.welcome h2, .welcome p {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* Sombra negra con opacidad */
+}
+
 
 /* Tarjetas de productos destacados */
 .cards {
