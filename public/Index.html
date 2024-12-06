@@ -3,68 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="LoginForm.css">
+    <title>Chucchillán Comercio Electrónico</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="wrapper">
-        <form id="loginForm">
-            <h1>Login</h1>
-            <div class="input-box">
-                <input type="text" id="email" name="email" placeholder="Correo" required>
-                <span class="icon">👤</span> 
+    <!-- Navegación -->
+    <nav class="navbar">
+        <div class="logo">
+            <h1>Chucchillán</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="Home.html">Productos</a></li>
+            <li><a href="cart.html">Carrito</a></li>
+            <li><a href="nosotros.html">Nosotros</a></li>
+        </ul>
+    </nav>
+
+    <!-- Encabezado -->
+    <header class="header">
+        <h1>Comercio Electrónico en Chucchillán</h1>
+        <p>Apoya a los productores locales y explora una variedad de productos únicos.</p>
+    </header>
+
+    <!-- Cuerpo -->
+    <main>
+        <!-- Bienvenida -->
+        <section class="welcome">
+            <h2>Descubre lo que Chucchillán tiene para ofrecer</h2>
+            <p>Compra productos locales y apoya el comercio justo mientras disfrutas de la belleza de este lugar.</p>
+        </section>
+
+        <!-- Atracciones y Comercio -->
+        <section class="attractions">
+            <h2>Nuestros Productos Destacados</h2>
+            <div class="cards">
+                <div class="card">
+                    <img src="img/producto1.jpg" alt="Producto 1">
+                    <h3>Producto 1</h3>
+                    <p>Descripción breve del producto.</p>
+                </div>
+                <div class="card">
+                    <img src="img/producto2.jpg" alt="Producto 2">
+                    <h3>Producto 2</h3>
+                    <p>Descripción breve del producto.</p>
+                </div>
+                <div class="card">
+                    <img src="img/producto3.jpg" alt="Producto 3">
+                    <h3>Producto 3</h3>
+                    <p>Descripción breve del producto.</p>
+                </div>
             </div>
-            <div class="input-box">
-                <input type="password" id="contraseña" name="contraseña" placeholder="Contraseña" required>
-                <span class="icon">🔒</span> 
+        </section>
+
+        <!-- Buscador y Productos Dinámicos -->
+        <section class="product-section">
+            <h2>Productos Disponibles</h2>
+            <!-- Barra de búsqueda y filtro -->
+            <div class="search-filter">
+                <input 
+                    type="text" 
+                    id="search-bar" 
+                    placeholder="Buscar productos..." 
+                    oninput="filtrarProductos()"
+                >
+                <select id="category-filter" onchange="filtrarProductos()">
+                    <option value="all">Todas las categorías</option>
+                    <option value="Frutas">Frutas</option>
+                    <option value="Lácteos">Lácteos</option>
+                    <option value="Ropa">Ropa</option>
+                    <option value="Procesados">Procesados</option>
+                    <option value="Medicinas">Medicinas</option>
+                    <option value="Verduras">Verduras</option>
+                    <option value="Artículos Artesanales">Artículos Artesanales</option>
+                    <option value="Cuidado Personal">Cuidado Personal</option>
+                    <option value="Bebidas">Bebidas</option>
+                </select>
+                <button id="search-button" onclick="filtrarProductos()">Buscar</button>
             </div>
-            <div class="remember-forgot">
-                <label><input type="checkbox" name="recordarme">Recordarme</label>
-                <a href="#">Olvidé mi Contraseña</a>
+            <div class="product-grid" id="productos">
+                <!-- Los productos se agregarán dinámicamente aquí -->
             </div>
-            <button type="submit">Ingresar</button>
-            <div class="register-link">
-                <p>No tengo cuenta <a href="Register.html">Registrarme</a></p>
-            </div>
-        </form>
-    </div>
+        </section>
+    </main>
+
+    <!-- Pie de página -->
+    <footer class="footer">
+        <p>&copy; 2024 Comercio Electrónico Chucchillán. Todos los derechos reservados.</p>
+    </footer>
 
     <script>
-        // Manejar el envío del formulario
-        document.getElementById('loginForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
+        let productosCargados = []; // Para almacenar los productos cargados
 
-            const email = document.getElementById('email').value;
-            const contraseña = document.getElementById('contraseña').value;
+        async function cargarProductos() {
+            const response = await fetch('/api/productos');
+            productosCargados = await response.json(); // Guardar los productos cargados
+            mostrarProductos(productosCargados); // Mostrar todos los productos
+        }
 
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams({
-                        email: email,
-                        contraseña: contraseña
-                    })
-                });
+        function mostrarProductos(productos) {
+            const productosDiv = document.getElementById('productos');
+            productosDiv.innerHTML = ''; // Limpiar productos existentes
 
+            productos.forEach(producto => {
+                const productoDiv = document.createElement('div');
+                productoDiv.classList.add('product-card');
+
+                const imagenUrl = `/api/producto/imagen/${producto.ProductoID}`;
+                productoDiv.innerHTML = `
+                    <a href="product.html?id=${producto.ProductoID}" style="text-decoration: none; color: inherit;">
+                        <img src="${imagenUrl}" alt="${producto.Nombre}">
+                        <h3>${producto.Nombre}</h3>
+                        <p class="price">$${producto.Precio}</p>
+                    </a>
+                    <button class="btn" onclick="agregarAlCarrito(${producto.ProductoID}, '${producto.Nombre}', ${producto.Precio}, '${producto.imagen}')">Añadir al carrito</button>
+                `;
+
+                productosDiv.appendChild(productoDiv);
+            });
+        }
+
+        function filtrarProductos() {
+            const textoBusqueda = document.getElementById('search-bar').value.toLowerCase();
+            const categoriaSeleccionada = document.getElementById('category-filter').value;
+
+            const productosFiltrados = productosCargados.filter(producto => {
+                const coincideTexto = producto.Nombre.toLowerCase().includes(textoBusqueda);
+                const coincideCategoria = categoriaSeleccionada === 'all' || producto.Categoria === categoriaSeleccionada;
+                return coincideTexto && coincideCategoria;
+            });
+
+            mostrarProductos(productosFiltrados);
+        }
+
+        async function agregarAlCarrito(productId, nombre, precio, imagen) {
+            const response = await fetch('/api/carrito', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    producto_id: productId,
+                    nombre: nombre,
+                    precio: precio,
+                    imagen: imagen,
+                    cantidad: 1
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                alert(`Error: ${errorData.message}`);
+            } else {
                 const data = await response.json();
-
-                if (response.ok) {
-                    // Guardar los datos en sessionStorage
-                    sessionStorage.setItem('userId', data.userId);
-                    sessionStorage.setItem('userRole', data.userRole);  
-                  
-                    // Redirigir al usuario a la página principal
-                    window.location.href = '/Home.html';
-                } else {
-                    alert(data.message);
-                }
-            } catch (error) {
-                console.error('Error en la solicitud:', error);
+                alert(data.message);
             }
-        });
+        }
+
+        cargarProductos();
     </script>
 </body>
 </html>

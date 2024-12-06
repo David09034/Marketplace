@@ -175,7 +175,7 @@ app.post('/api/registro', express.json(), async (req, res) => {
             return res.status(400).json({ error: 'El correo electrónico ya está registrado' });
         }
 
-        res.redirect('/Index.html');
+        res.redirect('/Login.html');
     } catch (error) {
         console.error("Error al registrar el usuario:", error);
         res.status(500).json({ error: 'Error al registrar el usuario' });

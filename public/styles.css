@@ -1,162 +1,221 @@
-/* General */
-* {
+/* Reset básico */
+body, h1, h2, h3, p, ul, li, a, button {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: Arial, sans-serif;
+    font-family: 'Raleway', sans-serif;
 }
+
+/* Centrar el título de "Nuestros Productos Destacados" */
+h2 {
+    text-align: center;
+}
+
 
 body {
-    background-color: #f5f5f5;
-    color: #333;
+    background-color: #e9f7ef; /* Fondo verde claro */
+    color: #1a3d2f; /* Verde oscuro para el texto */
+    line-height: 1.6;
 }
 
-/* Barra de Navegación */
+/* Navegación */
 .navbar {
-    background-color: #333;
-    color: #fff;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
+    background-color: #1a3d2f; /* Verde oscuro */
+    padding: 10px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.navbar .logo {
-    font-size: 1.5rem;
+.navbar .logo h1 {
+    color: #e9f7ef; /* Verde claro */
+    font-size: 24px;
     font-weight: bold;
 }
 
-.nav-links {
+.navbar .nav-links {
     list-style: none;
     display: flex;
+    gap: 15px;
 }
 
-.nav-links li {
-    margin-left: 1.5rem;
-}
-
-.nav-links a {
-    color: #fff;
+.navbar .nav-links a {
     text-decoration: none;
-    font-weight: 500;
+    color: #e9f7ef;
+    font-weight: 700;
+    transition: color 0.3s ease;
 }
 
-.nav-links a:hover {
-    color: #ffd700;
+.navbar .nav-links a:hover {
+    color: #c8e6c9; /* Verde más claro */
 }
 
-/* Sección de Productos */
+/* Encabezado */
+.header {
+    text-align: center;
+    padding: 50px 20px;
+    background: linear-gradient(135deg, #1a3d2f, #4caf50); /* Degradado verde */
+    color: #fff;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.header p {
+    font-size: 1.2rem;
+}
+
+/* Sección de bienvenida */
+.welcome {
+    text-align: center;
+    padding: 30px 20px;
+}
+
+.welcome h2 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: #1a3d2f;
+}
+
+.welcome p {
+    font-size: 1rem;
+    color: #4caf50; /* Verde brillante */
+}
+
+/* Tarjetas de productos destacados */
+.cards {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+    flex-wrap: wrap;
+}
+
+.card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    text-align: center;
+    width: 250px;
+    transition: transform 0.3s ease;
+}
+
+.card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.card h3 {
+    color: #1a3d2f;
+    margin: 10px 0;
+    font-size: 1.2rem;
+}
+
+.card p {
+    color: #4caf50;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+/* Barra de búsqueda y productos */
 .product-section {
-    padding: 2rem;
+    padding: 30px 20px;
     text-align: center;
 }
 
 .product-section h2 {
-    margin-bottom: 1.5rem;
-    color: #333;
-}
-
-.product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    padding: 1rem;
-}
-
-.product-card {
-    background-color: #fff;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    transition: transform 0.3s;
-    height: 350px; /* Fija la altura de las tarjetas */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-
-.product-card:hover {
-    transform: scale(1.05);
-}
-
-.product-card img {
-    width: 100%;
-    height: 200px; /* Establecer una altura fija */
-    object-fit: cover; /* Mantener la imagen dentro del contenedor sin distorsionarla */
-    border-radius: 8px;
-}
-
-
-.product-card h3 {
-    margin: 0.5rem 0;
-    font-size: 1.2rem;
-}
-
-.price {
-    font-size: 1.1rem;
-    color: #333;
-    font-weight: bold;
-}
-
-.btn {
-    margin-top: 0.5rem;
-    padding: 0.5rem 1rem;
-    background-color: #333;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.btn:hover {
-    background-color: #ffd700;
+    color: #1a3d2f;
+    margin-bottom: 20px;
 }
 
 .search-filter {
     display: flex;
+    justify-content: center;
     gap: 10px;
+    flex-wrap: wrap;
     margin-bottom: 20px;
 }
-/*Barra de busqueda y categorias */
-#search-bar {
-    flex: 1;
+
+#search-bar, #category-filter, #search-button {
     padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 2px solid #4caf50;
+    border-radius: 5px;
+    outline: none;
+    font-size: 1rem;
 }
 
-#category-filter {
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+#search-bar:focus, #category-filter:focus, #search-button:hover {
+    border-color: #1a3d2f;
 }
 
-#search-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #4CAF50; /* Color de fondo */
-    color: white; /* Color del texto */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.product-card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    text-align: center;
+}
+
+.product-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.product-card h3 {
+    font-size: 1.2rem;
+    color: #1a3d2f;
+    margin-bottom: 5px;
+}
+
+.product-card .price {
+    font-size: 1rem;
+    color: #4caf50;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.product-card .btn {
+    background-color: #4caf50;
+    color: #fff;
     border: none;
-    border-radius: 4px;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
     cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-#search-button:hover {
-    background-color: #45a049; /* Color de fondo al pasar el cursor */
+.product-card .btn:hover {
+    background-color: #1a3d2f;
 }
-
 
 /* Pie de página */
 .footer {
-    background-color: #333;
-    color: #fff;
+    background-color: #1a3d2f;
+    color: #e9f7ef;
     text-align: center;
-    padding: 1rem;
-    font-size: 0.9rem;
+    padding: 20px;
+    margin-top: 30px;
 }
 
+.footer p {
+    font-size: 0.9rem;
+}
