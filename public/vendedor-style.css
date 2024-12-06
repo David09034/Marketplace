@@ -1,182 +1,135 @@
+/* Estilos generales */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    background-color: #f4f4f9;
+    color: #333;
 }
 
+/* Header */
 header {
-    background-color: #333;
+    background: linear-gradient(135deg, #388e3c, #81c784); /* Degradado verde */
     color: #fff;
     text-align: center;
     padding: 15px 0;
+    font-size: 1.5em;
+    font-weight: bold;
 }
 
+/* Navegación */
 nav {
     display: flex;
     justify-content: center;
-    background-color: #444;
+    background-color: #388e3c; /* Verde oscuro */
+    padding: 10px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 nav a {
     color: #fff;
-    padding: 15px;
+    padding: 10px 20px;
     text-decoration: none;
-    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+nav a:hover {
+    background-color: #81c784; /* Verde claro */
+    transform: scale(1.1);
 }
 
 nav a.active {
-    background-color: #555;
+    background-color: #81c784; /* Verde claro */
+    border-radius: 5px;
 }
 
+/* Contenedor principal */
 .container {
     padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
+/* Paneles */
 .panel {
     display: none; /* Ocultar paneles por defecto */
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
 }
 
 .panel.active {
     display: block; /* Mostrar solo el panel activo */
 }
 
+/* Formulario */
 .form-group {
     margin-bottom: 15px;
 }
 
 .form-group label {
     display: block;
+    font-weight: bold;
     margin-bottom: 5px;
+    color: #555;
 }
 
 .form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
 .form-group textarea {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-}
-
-.btn {
-    background-color: #333;
-    color: #fff;
-    padding: 10px 15px;
-    border: none;
-    cursor: pointer;
-}
-
-.btn:hover {
-    background-color: #555;
-}
-
-.table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.table th,
-.table td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
-
-footer {
-    text-align: center;
-    padding: 10px 0;
-    background-color: #333;
-    color: #fff;
-    width: 100%;
-    /* Eliminar el position: fixed; para que no se quede fijo al fondo */
-    margin-top: 20px; /* Deja un pequeño espacio entre el contenido principal y el pie de página */
-}
-
-.panel {
-    display: none;
-}
-
-.panel.active {
-    display: block;
-}
-
-/* Estilo base para los paneles */
-.panel {
-    display: none; /* Oculta los paneles por defecto */
-    padding: 20px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin-top: 20px;
-}
-
-.panel.active {
-    display: block; /* Muestra solo el panel activo */
-}
-
-/* Formulario del tab de pago */
-#formularioCompra {
-    max-width: 600px;
-    margin: 0 auto;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-}
-
-/* Estilo de los campos del formulario */
-#formularioCompra form div {
-    margin-bottom: 15px;
-}
-
-#formularioCompra label {
-    display: block;
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #333;
-}
-
-#formularioCompra input,
-#formularioCompra select,
-#formularioCompra textarea {
-    width: 100%;
-    padding: 10px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
-}
-
-/* Botón de confirmación */
-#formularioCompra button[type="submit"] {
-    background-color: #28a745;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    padding: 10px 15px;
-    font-size: 16px;
-    cursor: pointer;
-    text-align: center;
-    display: inline-block;
-    width: 100%;
-    transition: background-color 0.3s;
-}
-
-#formularioCompra button[type="submit"]:hover {
-    background-color: #218838;
-}
-
-/* Instrucciones especiales */
-#formularioCompra textarea {
     resize: vertical; /* Permitir cambiar tamaño solo en vertical */
 }
 
-/* Mensaje de ayuda o errores */
-#formularioCompra .message {
-    font-size: 12px;
-    color: #888;
-    margin-top: -10px;
+/* Botones */
+.btn {
+    background-color: #388e3c; /* Verde oscuro */
+    color: #fff;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    display: inline-block;
+}
+
+.btn:hover {
+    background-color: #81c784; /* Verde claro */
+    transform: scale(1.05);
+}
+
+/* Botón de confirmación específico */
+#formularioCompra button[type="submit"] {
+    background-color: #28a745; /* Verde vibrante */
+    color: #fff;
+    font-size: 16px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+#formularioCompra button[type="submit"]:hover {
+    background-color: #218838; /* Verde más oscuro */
+    transform: translateY(-2px);
 }
 
 /* Encabezado del formulario */
@@ -186,9 +139,57 @@ footer {
     color: #333;
 }
 
-/* Estilo para responsive design */
+/* Mensajes de ayuda o errores */
+#formularioCompra .message {
+    font-size: 12px;
+    color: #888;
+    margin-top: -10px;
+}
+
+/* Tablas */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table th,
+.table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.table th {
+    background-color: #f4f4f9;
+    font-weight: bold;
+    color: #555;
+}
+
+/* Pie de página */
+.footer {
+    background-color: #1a3d2f;
+    color: #e9f7ef;
+    text-align: center;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.footer p {
+    font-size: 0.9rem;
+}
+
+
+/* Responsive */
 @media (max-width: 768px) {
-    #formularioCompra {
+    nav a {
+        padding: 8px 10px;
+        font-size: 0.9em;
+    }
+
+    .container {
         padding: 15px;
     }
 

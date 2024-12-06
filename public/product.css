@@ -3,7 +3,7 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f9;
+    background-color: #f4f4f9; /* Fondo gris claro */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -13,7 +13,7 @@ body {
 /* Header y Barra de Navegación */
 .navbar {
     width: 100%;
-    background-color: #333;
+    background: linear-gradient(135deg, #388e3c, #81c784); /* Degradado verde */
     padding: 10px 0;
     display: flex;
     align-items: center;
@@ -51,12 +51,12 @@ body {
 }
 
 .navbar .nav-links a:hover {
-    color: #007bff;
+    color: #004d40; /* Azul verdoso al hacer hover */
 }
 
 /* Contenedor de detalles del producto */
 .product-details {
-    background-color: #fff;
+    background-color: #ffffff;
     width: 90%;
     max-width: 600px;
     padding: 20px;
@@ -69,7 +69,7 @@ body {
 /* Estilo del título */
 .product-details h1 {
     font-size: 1.8em;
-    color: #333;
+    color: #388e3c; /* Verde oscuro */
     margin-bottom: 10px;
 }
 
@@ -93,7 +93,7 @@ body {
 .product-details .price {
     font-size: 1.2em;
     font-weight: bold;
-    color: #007bff;
+    color: #388e3c; /* Verde destacado para el precio */
 }
 
 /* Botón de "Añadir al carrito" */
@@ -103,7 +103,7 @@ body {
     margin-top: 15px;
     font-size: 1em;
     color: #fff;
-    background-color: #007bff;
+    background: linear-gradient(135deg, #388e3c, #81c784); /* Degradado verde */
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -111,14 +111,14 @@ body {
 }
 
 .product-details .btn:hover {
-    background-color: #0056b3;
+    background: linear-gradient(135deg, #81c784, #388e3c); /* Invertir el degradado al pasar el ratón */
 }
 
 /* Footer */
 footer {
     width: 100%;
-    background-color: #333;
-    color: #fff;
+    background-color: #1a3d2f;
+    color: #e9f7ef;
     text-align: center;
     padding: 15px 0;
     position: relative;
