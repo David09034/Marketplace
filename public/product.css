@@ -117,8 +117,8 @@ body {
 /* Footer */
 footer {
     width: 100%;
-    background: linear-gradient(135deg, #388e3c, #81c784); /* Degradado verde */
-    color: #fff;
+    background-color: #1a3d2f;
+    color: #e9f7ef;
     text-align: center;
     padding: 15px 0;
     position: relative;

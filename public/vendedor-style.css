@@ -168,14 +168,19 @@ nav a.active {
     color: #555;
 }
 
-/* Footer */
-footer {
+/* Pie de página */
+.footer {
+    background-color: #1a3d2f;
+    color: #e9f7ef;
     text-align: center;
-    padding: 15px 0;
-    background: linear-gradient(135deg, #388e3c, #81c784); /* Degradado verde */
-    color: #fff;
-    margin-top: 20px;
+    padding: 20px;
+    margin-top: 30px;
 }
+
+.footer p {
+    font-size: 0.9rem;
+}
+
 
 /* Responsive */
 @media (max-width: 768px) {
