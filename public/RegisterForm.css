@@ -10,8 +10,9 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
+    font-family: 'Raleway', sans-serif;
+    background: linear-gradient(135deg, #a8e6cf, #56ab2f);
+    color: #333;
 }
 
 /* Contenedor principal */
@@ -20,14 +21,16 @@ body {
     max-width: 400px;
     padding: 20px;
     background-color: #ffffff;
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
     text-align: center;
 }
 
 h1 {
     margin-bottom: 20px;
-    color: #333;
+    color: #2e7d32; /* Verde oscuro */
+    font-size: 24px;
+    font-weight: 700;
 }
 
 /* Estilos para los campos de entrada */
@@ -39,11 +42,18 @@ h1 {
 .input-box input,
 .input-box select {
     width: 100%;
-    padding: 10px;
-    padding-left: 35px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    padding: 12px;
+    padding-left: 40px;
+    border: 1px solid #c5e1a5; /* Verde claro */
+    border-radius: 8px;
     outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.input-box input:focus,
+.input-box select:focus {
+    border-color: #81c784; /* Verde intermedio */
+    box-shadow: 0 0 5px rgba(129, 199, 132, 0.5);
 }
 
 .icon {
@@ -51,26 +61,26 @@ h1 {
     top: 50%;
     left: 10px;
     transform: translateY(-50%);
-    color: #888;
+    color: #66bb6a; /* Verde */
 }
 
 /* Botón "Registrarme" */
 button[type="submit"] {
-    background-color: #d32f2f; /* Rojo */
-    color: #fff;
+    background-color: #43a047; /* Verde principal */
+    color: #ffffff;
     font-size: 16px;
     font-weight: bold;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     padding: 12px;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
-    margin-bottom: 15px; /* Espaciado entre botones */
+    margin-bottom: 15px;
     width: 100%;
 }
 
 button[type="submit"]:hover {
-    background-color: #b71c1c; /* Rojo más oscuro */
+    background-color: #388e3c; /* Verde más oscuro */
 }
 
 button[type="submit"]:active {
@@ -79,20 +89,20 @@ button[type="submit"]:active {
 
 /* Botón para usuarios existentes */
 .existing-user button {
-    background-color: #0066cc; /* Azul */
-    color: #fff;
+    background-color: #4caf50; /* Verde brillante */
+    color: #ffffff;
     font-size: 14px;
     padding: 10px;
-    border-radius: 5px;
+    border-radius: 8px;
     border: none;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
-    margin-bottom: 15px; /* Separación entre los botones */
+    margin-bottom: 15px;
     width: 100%;
 }
 
 .existing-user button:hover {
-    background-color: #004c99; /* Azul más oscuro */
+    background-color: #388e3c; /* Verde más oscuro */
 }
 
 .existing-user button:active {
@@ -101,31 +111,32 @@ button[type="submit"]:active {
 
 /* Fondo amarillo para el texto "¿Ya tienes una cuenta?" */
 .existing-user p {
-    background-color: #ffeb3b; /* Amarillo */
+    background-color: #fff9c4; /* Amarillo claro */
     padding: 10px;
-    border-radius: 5px;
-    color: #333; /* Texto oscuro */
+    border-radius: 8px;
+    color: #333;
     font-weight: bold;
     display: block;
-    margin-bottom: 10px; /* Separación con el botón */
+    margin-bottom: 10px;
     width: 100%;
+    text-align: center;
 }
 
 /* Adaptabilidad para dispositivos móviles */
 @media screen and (max-width: 768px) {
     .wrapper {
-        width: 90%; /* Reduce el ancho */
-        padding: 15px; /* Menos espacio interno */
+        width: 90%;
+        padding: 15px;
     }
 
     button[type="submit"],
     .existing-user button {
-        padding: 10px; /* Ajusta el tamaño de los botones */
-        font-size: 14px; /* Reduce el tamaño del texto */
+        padding: 10px;
+        font-size: 14px;
     }
 
     .existing-user p {
-        font-size: 14px; /* Reduce el tamaño del texto */
-        padding: 8px; /* Ajusta el espacio interno */
+        font-size: 14px;
+        padding: 8px;
     }
 }

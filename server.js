@@ -5,7 +5,7 @@ const mysql = require('mysql2/promise');  // Importa mysql2 para promesas
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const app = express();
-const PORT = 3000;
+const PORT = 3001;
 const mod_var = 'D';
 
 const poolConfig = mod_var === 'D' ? {
