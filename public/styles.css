@@ -28,6 +28,10 @@ body {
     color: #1a3d2f; /* Verde oscuro para el texto */
     line-height: 1.6;
 }
+.nav-links i {
+    margin-right: 8px; /* Espacio entre el icono y el texto */
+    font-size: 1.2rem;  /* Tamaño del icono */
+}
 
 /* Navegación */
 .navbar {
@@ -70,41 +74,71 @@ body {
     color: #fff;
 }
 
+.header .logo-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 10px;
+    background-color: transparent;
+}
+
+.header .logo {
+    height: 150px; /* Tamaño estándar de los logos */
+    background-color: transparent;
+}
+
+.header .puce-logo {
+    width: 150px; /* Ajusta el tamaño del logo de PUCE */
+    object-fit: contain;
+    
+}
+
+.header .gad-logo {
+    width: 150px; /* Ajusta el tamaño del logo del GAD de Chucchillán */
+    object-fit: contain;
+}
+
 .header h1 {
     font-size: 2.5rem;
-    margin-bottom: 10px;
+    margin: 0;
 }
 
 .header p {
     font-size: 1.2rem;
 }
 
+
 /* Sección de bienvenida */
 .welcome {
     text-align: center;
     padding: 30px 20px;
     background-color: rgba(0, 0, 0, 0.5); /* Fondo negro con opacidad */
-    border-radius: 10px; /* Opcional, para dar bordes redondeados */
+    border-radius: 10px; /* Bordes redondeados */
 }
 
 .welcome h2 {
-    font-size: 1.8rem;
-    margin-bottom: 15px;
-    color: #e0e02d;
+    font-size: 2rem; /* Aumenta el tamaño de la fuente */
+    margin-bottom: 20px; /* Mayor separación */
+    color: #FFD700; /* Amarillo (color bandera de Ecuador) */
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* Sombra negra */
 }
 
 .welcome p {
-    font-size: 1.8rem;
-    color: #1859ef; /* Verde brillante */
-}
-.welcome p2 {
-    font-size: 1.8rem;
-    margin-bottom: 15px;
-    color: #e43e28;
+    font-size: 1.8rem; /* Mantener tamaño uniforme */
+    color: #2f7fdb; /* Azul (color bandera de Ecuador) */
+    margin-bottom: 15px; /* Separación con otros elementos */
+    line-height: 1.5;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* Sombra negra */
 }
 
-.welcome h2, .welcome p {
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* Sombra negra con opacidad */
+.welcome p2 {
+    font-size: 1.8rem;
+    margin-bottom: 20px; /* Mayor separación */
+    color: #EF4444; /* Rojo (color bandera de Ecuador) */
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* Sombra negra */
 }
 
 
@@ -242,3 +276,107 @@ body {
 .footer p {
     font-size: 0.9rem;
 }
+
+/* Animaciones y transiciones */
+
+/* Botones con efectos */
+.btn {
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #4fc395;
+    transform: scale(1.1);
+}
+
+/* Efecto en las tarjetas de productos destacados */
+.card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    text-align: center;
+    width: 250px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Transición suave en el hover de enlaces */
+.nav-links a {
+    text-decoration: none;
+    color: #e9f7ef;
+    font-weight: 700;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: #c8e6c9; /* Verde más claro */
+    text-shadow: 1px 1px 5px rgba(255, 255, 255, 0.5);
+}
+
+/* Efecto en los productos de la grilla */
+.product-card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Transición en el foco de los inputs */
+#search-bar:focus, #category-filter:focus {
+    border-color: #1a3d2f;
+    box-shadow: 0 0 5px #4caf50;
+}
+
+/* Animación para la sección de bienvenida */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.welcome {
+    animation: fadeIn 1.5s ease-in-out;
+}
+
+/* Transición en el encabezado */
+.header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.header:hover h1 {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+/* Efectos adicionales para la barra de navegación */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.navbar:hover {
+    background-color: #1d8f3d; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
