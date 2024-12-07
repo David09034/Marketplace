@@ -128,6 +128,7 @@
     </footer>
 
     <script>
+        
         // Función para cargar los productos
         async function cargarProductos() {
             const userId = sessionStorage.getItem('userId');
@@ -155,14 +156,12 @@
                 }
     
                 const productos = await response.json();
-                console.log('Productos recibidos:', productos);  // Verifica los productos recibidos
     
                 if (productos && productos.length > 0) {
                     const productList = document.getElementById('productList');
                     productList.innerHTML = ''; // Limpiar la lista de productos actual
     
                     productos.forEach(producto => {
-                        console.log(`Añadiendo producto: ${producto.Nombre}`);  // Log de cada producto
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td>${producto.Nombre}</td>
@@ -171,7 +170,7 @@
                             <td>${producto.Stock}</td>
                             <td>${producto.Categoria}</td>
                             <td>
-                                <button onclick="editarProducto(${producto.ProductoID})">Editar</button>
+                                <button onclick="window.location.href='editar-producto.html?ProductoID=${producto.ProductoID}'">Editar</button>
                                 <button onclick="eliminarProducto(${producto.ProductoID})">Eliminar</button>
                             </td>
                         `;
@@ -187,41 +186,100 @@
         }
 
         async function insertarProducto(event) {
-    event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+            event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
 
-    const form = document.getElementById('productForm');
-    const formData = new FormData(form);
+            const form = document.getElementById('productForm');
+            const formData = new FormData(form);
 
-    // Agregar el ID del productor desde sessionStorage o cualquier otra fuente
-    const productorID = sessionStorage.getItem('userId'); // Suponiendo que el ID se almacena aquí
+            // Agregar el ID del productor desde sessionStorage o cualquier otra fuente
+            const productorID = sessionStorage.getItem('userId'); // Suponiendo que el ID se almacena aquí
 
-    if (!productorID) {
-        alert('Error: No se encontró el ID del productor. Por favor inicia sesión nuevamente.');
-        return;
-    }
+            if (!productorID) {
+                alert('Error: No se encontró el ID del productor. Por favor inicia sesión nuevamente.');
+                return;
+            }
 
-    formData.append('productorID', productorID);
+            formData.append('productorID', productorID);
 
-    try {
-        const response = await fetch('/api/productos', {
-            method: 'POST',
-            body: formData,
-        });
+            try {
+                const response = await fetch('/api/productos', {
+                    method: 'POST',
+                    body: formData,
+                });
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Error al insertar el producto');
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Error al insertar el producto');
+                }
+
+                const resultado = await response.json();
+                alert(resultado.message || 'Producto insertado exitosamente');
+                form.reset(); // Limpiar el formulario después de la inserción
+                cargarProductos(); // Recargar la lista de productos
+            } catch (error) {
+                console.error('Error al insertar producto:', error);
+                alert('Hubo un problema al insertar el producto. Detalles: ' + error.message);
+            }
+        }
+        async function actualizarProducto(event) {
+            event.preventDefault();
+
+            const form = document.getElementById('editProductForm');
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(`/productos/${productoID}`, {
+                    method: 'PUT',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Error al actualizar el producto');
+                }
+
+                const resultado = await response.json();
+                alert(resultado.message || 'Producto actualizado exitosamente');
+                window.location.href = 'vendedor.html'; // Redirige de vuelta al panel de vendedor
+
+            } catch (error) {
+                console.error('Error al actualizar el producto:', error);
+                alert('Hubo un problema al actualizar el producto. Detalles: ' + error.message);
+            }
         }
 
-        const resultado = await response.json();
-        alert(resultado.message || 'Producto insertado exitosamente');
-        form.reset(); // Limpiar el formulario después de la inserción
-        cargarProductos(); // Recargar la lista de productos
-    } catch (error) {
-        console.error('Error al insertar producto:', error);
-        alert('Hubo un problema al insertar el producto. Detalles: ' + error.message);
-    }
-}
+        async function eliminarProducto(productoID) {
+            const confirmacion = confirm('¿Estás seguro de que deseas eliminar este producto?');
+
+            if (!confirmacion) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/delete/producto/${productoID}`, {
+                    method: 'DELETE',  // Cambiar PUT por DELETE
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    // No es necesario enviar un cuerpo con 'stock: 0' para eliminar lógicamente
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Error desconocido al actualizar el stock');
+                }
+
+                const resultado = await response.json();
+                alert(resultado.message || 'Producto eliminado exitosamente');
+                cargarProductos();  // Recargar la lista de productos
+            } catch (error) {
+                console.error('Error al eliminar producto:', error);
+                alert('Hubo un problema al actualizar el stock del producto. Detalles: ' + error.message);
+            }
+        }
+
+
+
 
     
         window.onload = cargarProductos;

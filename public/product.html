@@ -8,9 +8,8 @@
 </head>
 <body>
 
-    
     <header class="navbar">
-        <h1 class="logo">Marketplace Chugchilan </h1>
+        <h1 class="logo">Marketplace Chugchilan</h1>
         <nav>
             <ul class="nav-links">
                 <li><a href="Index.html">Inicio</a></li>
@@ -20,7 +19,7 @@
         </nav>
     </header>
 
-
+    <!-- Detalles del Producto -->
     <div class="product-details">
         <h1 id="product-name"></h1>
         <img id="product-image" src="" alt="Imagen del producto">
@@ -29,16 +28,37 @@
         <button class="btn" onclick="agregarAlCarrito()">Añadir al carrito</button>
     </div>
 
+    <section class="product-section">
+        <h2>Productos del vendedor</h2>
+        <div class="product-grid" id="productos">
+            <!-- Los productos se agregarán dinámicamente aquí -->
+        </div>
+    </section>
+
+    <!-- Sección de calificaciones y comentarios -->
+    <div id="calificaciones">
+        <h3>Comentarios y Calificaciones:</h3>
+        <ul id="comentarios-list" class="comentarios-list">
+            <!-- Los comentarios se insertarán aquí con JavaScript -->
+        </ul>
+        <div id="mensaje-no-comentarios"></div>
+    </div>
+
     <footer>
         <p>&copy; 2023 Tienda Online. Todos los derechos reservados.</p>
     </footer>
 
     <script>
-        // Obtén el ID del producto desde la URL
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
-    
-        // Llama a la API para obtener los detalles del producto
+
+        // Validar que el ID del producto exista
+        if (!productId) {
+            document.body.innerHTML = '<h2>Error: No se especificó el ID del producto.</h2>';
+            throw new Error('ID del producto no especificado.');
+        }
+
+        // Obtener detalles del producto
         fetch(`/producto/${productId}`)
             .then(response => response.json())
             .then(product => {
@@ -48,12 +68,17 @@
                     document.getElementById('product-name').textContent = product.nombre;
                     document.getElementById('product-description').textContent = product.descripcion;
                     document.getElementById('product-price').textContent = product.precio;
-    
-                    // Asignar la imagen usando la URL proporcionada por la API
+
+                    const productImage = document.getElementById('product-image');
                     if (product.imagenUrl) {
-                        document.getElementById('product-image').src = product.imagenUrl;
+                        productImage.src = product.imagenUrl;
                     } else {
-                        document.getElementById('product-image').alt = 'Imagen no disponible';
+                        productImage.alt = 'Imagen no disponible';
+                    }
+
+                    // Cargar productos del mismo vendedor si se encuentra el ID
+                    if (product.productorId) {
+                        cargarProductosDelProductor(product.productorId);
                     }
                 }
             })
@@ -61,27 +86,89 @@
                 console.error('Error al cargar el producto:', error);
                 document.body.innerHTML = '<h2>Error al cargar el producto</h2>';
             });
-    
-        // Función para agregar el producto al carrito
-        function agregarAlCarrito() {
+
+        // Mostrar productos relacionados del vendedor
+        async function cargarProductosDelProductor(productorId) {
+            try {
+                const response = await fetch(`/api/productos/productor/${productorId}`);
+                const productos = await response.json();
+
+                const productosDiv = document.getElementById('productos');
+                productosDiv.innerHTML = ''; // Limpiar contenido anterior
+
+                if (!productos || productos.length === 0) {
+                    productosDiv.innerHTML = '<p>No hay productos disponibles de este vendedor.</p>';
+                    return;
+                }
+
+                productos.forEach(producto => {
+                    const productoDiv = document.createElement('div');
+                    productoDiv.classList.add('product-card');
+
+                    const imagenUrl = `/api/producto/imagen/${producto.ProductoID}`;
+                    productoDiv.innerHTML = `
+                        <a href="product.html?id=${producto.ProductoID}" style="text-decoration: none; color: inherit;">
+                            <img src="${imagenUrl}" alt="${producto.Nombre}">
+                            <h3>${producto.Nombre}</h3>
+                            <p class="price">$${producto.Precio}</p>
+                        </a>
+                        <button class="btn" onclick="agregarAlCarrito(${producto.ProductoID}, '${producto.Nombre}', ${producto.Precio}, '${imagenUrl}')">Añadir al carrito</button>
+                    `;
+
+                    productosDiv.appendChild(productoDiv);
+                });
+            } catch (error) {
+                console.error('Error al cargar los productos del productor:', error);
+            }
+        }
+
+        // Función para agregar productos al carrito
+        function agregarAlCarrito(productoId, nombre, precio, imagen) {
+            const producto = {
+                producto_id: productoId || productId,
+                nombre: nombre || document.getElementById('product-name').textContent,
+                precio: precio || parseFloat(document.getElementById('product-price').textContent),
+                imagen: imagen || document.getElementById('product-image').src,
+                cantidad: 1
+            };
+
             fetch('/api/carrito', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    producto_id: productId,
-                    nombre: document.getElementById('product-name').textContent,
-                    precio: parseFloat(document.getElementById('product-price').textContent),
-                    imagen: document.getElementById('product-image').src,
-                    cantidad: 1
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(producto)
             })
-            .then(response => response.json())
-            .then(data => alert(data.message))
-            .catch(error => console.error('Error al agregar al carrito:', error));
+                .then(response => response.json())
+                .then(data => alert(data.message))
+                .catch(error => console.error('Error al agregar al carrito:', error));
         }
+
+        // Obtener calificaciones y comentarios
+        fetch(`/api/calificaciones/${productId}`)
+            .then(response => response.json())
+            .then(calificaciones => {
+                const comentariosList = document.getElementById('comentarios-list');
+                const mensajeNoComentarios = document.getElementById('mensaje-no-comentarios');
+
+                if (calificaciones.length > 0) {
+                    calificaciones.forEach(calificacion => {
+                        const li = document.createElement('li');
+                        li.classList.add('comentario');
+
+                        const estrellas = '⭐'.repeat(calificacion.Calificacion) + '☆'.repeat(5 - calificacion.Calificacion);
+                        li.innerHTML = `
+                            <span class="calificacion">${estrellas}</span><br>
+                            <strong>${calificacion.UsuarioNombre}:</strong> ${calificacion.Comentario}
+                        `;
+                        comentariosList.appendChild(li);
+                    });
+                } else {
+                    mensajeNoComentarios.innerHTML = '<p>No hay comentarios para este producto.</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar las calificaciones:', error);
+                document.getElementById('mensaje-no-comentarios').innerHTML = '<p>No se pudo cargar las calificaciones.</p>';
+            });
     </script>
-    
 </body>
 </html>
