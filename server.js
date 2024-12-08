@@ -6,7 +6,7 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 3000;
-const mod_var = 'D';
+const mod_var = 'M';
 
 const poolConfig = mod_var === 'D' ? {
     host: 'localhost',
@@ -17,7 +17,7 @@ const poolConfig = mod_var === 'D' ? {
     connectionLimit: 10,
     queueLimit: 0
 } : {
-    host: '192.168.187.51',
+    host: '192.168.1.16',
     user: 'admin1',
     password: 'admin1',
     database: 'tienda',
