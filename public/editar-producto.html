@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Producto</title>
+    <link rel="stylesheet" href="vendedor-style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Editar Producto</h1>
+    </header>
+
+    <nav>
+        <a href="Index.html">Inicio</a>
+        <a href="#" class="tab-link active" data-tab="productos">Administrar Productos</a>
+        <a href="#" class="tab-link" data-tab="ventas">Mis Ventas</a>
+        <a href="#" class="tab-link" data-tab="perfil">Mi Perfil</a>
+    </nav>
+
+    <div class="container">
+        <form id="editProductForm" enctype="multipart/form-data" onsubmit="actualizarProducto(event)">
+            <div class="form-group">
+                <label for="nombre">Nombre del Producto:</label>
+                <input type="text" id="nombre" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="categoria">Categoría del Producto:</label>
+                <select id="categoria" name="categoria" required>
+                    <option value="Frutas">Frutas</option>
+                    <option value="Lácteos">Lácteos</option>
+                    <option value="Procesados">Procesados</option>
+                    <option value="Medicinas">Medicinas</option>
+                    <option value="Ropa">Ropa</option>
+                    <option value="Verduras">Verduras</option>
+                    <option value="Artículos Artesanales">Artículos Artesanales</option>
+                    <option value="Cuidado Personal">Cuidado Personal</option>
+                    <option value="Bebidas">Bebidas</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="Descripcion">Descripción del Producto:</label>
+                <input type="text" id="Descripcion" name="descripcion" required>
+            </div>
+            <div class="form-group">
+                <label for="precio">Precio:</label>
+                <input type="number" id="precio" name="precio" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="Stock">Cantidad/Stock del Producto:</label>
+                <input type="number" id="Stock" name="Stock" required>
+            </div>                
+
+            <input type="submit" value="Actualizar Producto">
+        </form>
+        <div id="mensaje" style="display: none;"></div>
+    </div>
+
+    <footer>
+        <p>Panel de Vendedor © 2024</p>
+    </footer>
+
+    <script>
+        // Obtener el ProductoID desde la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productoID = urlParams.get('ProductoID');
+        console.log(productoID)
+
+
+        async function cargarProducto() {
+            try {
+                const response = await fetch(`/producto/${productoID}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al obtener el producto');
+                }
+
+                const producto = await response.json();
+
+                // Rellenar los campos del formulario con los datos del producto
+                document.getElementById('nombre').value = producto.nombre;
+                document.getElementById('Descripcion').value = producto.descripcion;
+                document.getElementById('precio').value = producto.precio;
+                document.getElementById('Stock').value = producto.stock;
+
+                // Asignar la categoría seleccionada directamente por valor
+                const categoriaSelect = document.getElementById('categoria');
+                const categoria = producto.categoria;
+                
+                // Verificar el valor de la categoría recibida
+                console.log('Categoría recibida:', categoria);
+
+                // Asignamos el valor de la categoría directamente
+                categoriaSelect.value = categoria; 
+
+                // Verificamos si la categoría está dentro de las opciones del select
+                if (!categoriaSelect.value) {
+                    console.error("La categoría no coincide con ninguna opción disponible");
+                }
+
+            } catch (error) {
+                console.error('Error al cargar el producto:', error);
+                alert('No se pudo cargar el producto');
+            }
+        }
+
+
+
+
+
+        // Función para actualizar el producto
+        async function actualizarProducto(event) {
+            // Prevenir el comportamiento por defecto del formulario (recargar la página)
+            event.preventDefault();
+
+            // Obtener el ProductoID desde la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const productoID = urlParams.get('ProductoID');
+
+            // Obtener los datos del formulario
+            const nombre = document.getElementById('nombre').value;
+            const descripcion = document.getElementById('Descripcion').value;
+            const precio = document.getElementById('precio').value;
+            const stock = document.getElementById('Stock').value;
+            const categoria = document.getElementById('categoria').value;
+
+            // Mostrar los datos para verificar que no sean undefined
+            console.log('Datos a enviar:', { nombre, descripcion, precio, stock, categoria });
+
+            const productoData = {
+                nombre,
+                descripcion,
+                precio,
+                stock,
+                categoria
+            };
+
+            try {
+                const response = await fetch(`/update/producto/${productoID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(productoData), // Enviar los datos como JSON
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert('Producto actualizado correctamente');
+                    
+                    // Redirigir al vendedor.html después de una actualización exitosa
+                    window.location.href = 'vendedor.html';  // Redirección sin recargar la página
+                } else {
+                    const error = await response.text();
+                    throw new Error(error || 'Error al actualizar el producto');
+                }
+            } catch (error) {
+                console.error('Hubo un problema al actualizar el producto:', error);
+                alert('Hubo un problema al actualizar el producto. Detalles: ' + error.message);
+            }
+        }
+
+        // Cargar los datos del producto cuando la página cargue
+        window.onload = cargarProducto;
+    </script>
+
+</body>
+</html>

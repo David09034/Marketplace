@@ -72,14 +72,17 @@ app.get('/producto/:id', async (req, res) => {
         if (rows.length > 0) {
             const product = rows[0];
 
-            // Enviar los detalles del producto, pero la URL de la imagen se enviará por separado
             res.json({
                 nombre: product.Nombre,
                 descripcion: product.Descripcion,
                 precio: product.Precio,
-                imagenUrl: `/api/producto/imagen/${productId}`,  // Usar la URL de la imagen
+                stock: product.Stock,  
+                categoria: product.Categoria,  
+                imagenUrl: `/api/producto/imagen/${productId}`,  
+                productorId: product.ProductorID,
+                productoId: product.ProductoID,
             });
-            
+
         } else {
             res.status(404).json({ error: 'Producto no encontrado' });
         }
@@ -88,6 +91,63 @@ app.get('/producto/:id', async (req, res) => {
         res.status(500).json({ error: 'Error al cargar los detalles del producto' });
     }
 });
+
+// Eliminar producto (poner stock a 0)
+app.delete('/delete/producto/:productoID', async (req, res) => {
+    const { productoID } = req.params;  // Obtener el productoID desde los parámetros de la URL
+
+    // Consulta SQL para poner el stock a 0 (eliminar lógicamente el producto)
+    const query = 'UPDATE productos SET stock = 0 WHERE productoID = ?';
+
+    try {
+        // Ejecutar la consulta SQL
+        const [result] = await pool.query(query, [productoID]);
+
+        // Verificar si no se afectaron filas (producto no encontrado o ya eliminado)
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado o ya eliminado' });
+        }
+
+        // Respuesta exitosa
+        res.json({ message: 'Producto eliminado (stock actualizado a 0) exitosamente' });
+    } catch (error) {
+        console.error('Error al actualizar el stock:', error);
+        res.status(500).json({ error: 'Hubo un problema al eliminar el producto' });
+    }
+});
+
+
+
+app.put('/update/producto/:id', async (req, res) => {
+    const productId = req.params.id;
+    const { nombre, descripcion, precio, stock, categoria } = req.body;
+
+
+    if (!nombre || !descripcion || !precio || !stock || !categoria) {
+        return res.status(400).json({ error: 'Todos los campos son necesarios' });
+    }
+
+    try {
+        const query = `
+            UPDATE Productos
+            SET Nombre = ?, Descripcion = ?, Precio = ?, Stock = ?, Categoria = ?
+            WHERE ProductoID = ?
+        `;
+
+        const [result] = await pool.query(query, [nombre, descripcion, precio, stock, categoria, productId]);
+
+        if (result.affectedRows > 0) {
+            res.json({ message: 'Producto actualizado exitosamente' });
+        } else {
+            res.status(400).json({ error: 'No se pudo actualizar el producto' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al actualizar el producto' });
+    }
+});
+
+
 
 
 // Ruta para agregar productos al carrito
@@ -287,7 +347,7 @@ app.post('/api/productos', upload.single('Imagen'), async (req, res) => {
 
 app.get('/productos/:userId', async (req, res) => {
     const userId = req.params.userId;
-    console.log('userId recibido en el backend:', userId);  // Log para verificar el userId recibido
+
 
     try {
         // Obtener el ProductorID
@@ -298,11 +358,10 @@ app.get('/productos/:userId', async (req, res) => {
         }
 
         const productorId = productorRows[0].ProductorID;
-        console.log('ProductorID encontrado:', productorId);
+
 
         // Ahora obtenemos los productos usando el ProductorID
         const [productoRows] = await pool.query('SELECT * FROM Productos WHERE ProductorID = ?', [productorId]);
-        console.log('Productos obtenidos:', productoRows);
 
         if (productoRows.length > 0) {
             res.json(productoRows);  // Enviar productos encontrados
@@ -314,6 +373,30 @@ app.get('/productos/:userId', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener productos' });
     }
 });
+
+// Ruta para obtener productos de un productor por su ProductorID
+app.get('/api/productos/productor/:productorId', async (req, res) => {
+    const productorId = req.params.productorId; 
+
+    try {
+        // Consulta para obtener los productos asociados al ProductorID
+        const [productoRows] = await pool.query(
+            'SELECT ProductoID, Nombre, Descripcion, Precio FROM Productos WHERE ProductorID = ?', 
+            [productorId]
+        );
+
+        // Verificar si hay productos
+        if (productoRows.length > 0) {
+            res.json(productoRows); // Enviar la lista de productos
+        } else {
+            res.status(404).json({ error: 'No se encontraron productos para este productor' });
+        }
+    } catch (error) {
+        console.error('Error al obtener productos del productor:', error);
+        res.status(500).json({ error: 'Error al obtener los productos' });
+    }
+});
+
 
 
 
@@ -341,6 +424,27 @@ app.get('/api/producto/imagen/:id', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener la imagen' });
     }
 });
+
+// Ruta para obtener las calificaciones de un producto
+app.get('/api/calificaciones/:productoId', async (req, res) => {
+    const productoId = req.params.productoId;
+
+    try {
+        // Obtener todas las calificaciones del producto
+        const [rows] = await pool.query('SELECT c.Calificacion, c.Comentario, u.Nombre AS UsuarioNombre FROM Calificaciones c JOIN Usuarios u ON c.UsuarioID = u.UsuarioID WHERE c.ProductoID = ?', [productoId]);
+
+        // Verificar si se encontraron calificaciones
+        if (rows.length > 0) {
+            res.json(rows);  // Enviar las calificaciones encontradas
+        } else {
+            res.status(200).json([]);  // Enviar array vacío si no hay calificaciones
+        }
+    } catch (error) {
+        console.error('Error al obtener las calificaciones:', error);
+        res.status(500).json({ error: 'Error al obtener las calificaciones' });
+    }
+});
+
 
 //Get compras por cliente
 app.get('/api/compras/:clienteId', async (req, res) => {
