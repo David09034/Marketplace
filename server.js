@@ -579,6 +579,32 @@ app.post('/api/entrega', async (req, res) => {
 });
 
 
+// Ruta para obtener la información del vendedor por ProductoID
+app.get('/api/vendedor/:productoId', async (req, res) => {
+    const productoId = req.params.productoId;
+
+    try {
+        // Consulta para obtener los datos del vendedor relacionado con el producto
+        const [vendedorRows] = await pool.query(
+            `SELECT p.NombreEmpresa, p.Contacto, p.Ubicacion, u.Nombre, u.Email
+            FROM Productores p
+            JOIN Productos pd ON p.ProductorID = pd.ProductorID
+            JOIN Usuarios u on u.UsuarioID = p.UsuarioID
+            WHERE pd.ProductoID = ?`,
+            [productoId]
+        );
+
+        // Verificar si se encontró al vendedor
+        if (vendedorRows.length > 0) {
+            res.json(vendedorRows[0]); // Enviar los datos del vendedor
+        } else {
+            res.status(404).json({ error: 'Vendedor no encontrado para este producto' });
+        }
+    } catch (error) {
+        console.error('Error al obtener datos del vendedor:', error);
+        res.status(500).json({ error: 'Error al obtener los datos del vendedor' });
+    }
+});
 
 
 

@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel del Cliente</title>
     <link rel="stylesheet" href="vendedor-style.css">
+    <style>
+        .vendedor-info {
+            display: none;
+            background-color: #f1f1f1;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+        }
+        .vendedor-btn {
+            cursor: pointer;
+            color: blue;
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -25,10 +39,10 @@
                 <thead>
                     <tr>
                         <th>ID de Compra</th>
-                        <th>Estado</th>
-                        <th>Productos</th>
-                        <th>Fecha</th>
                         <th>Pagar</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                        <th>Productos</th>
                     </tr>
                 </thead>
                 <tbody id="purchaseList">
@@ -56,43 +70,6 @@
                 <button type="submit" class="btn">Actualizar Datos</button>
             </form>
         </div>
-        <div class="panel" id="formularioCompra" style="display:none;">
-            <h2>Formulario de Compra</h2>
-            <form id="compraForm">
-                <div>
-                    <label for="nombre">Nombre Completo:</label>
-                    <input type="text" id="nombre" name="nombre" required>
-                </div>
-                <div>
-                    <label for="direccion">Dirección:</label>
-                    <input type="text" id="direccion" name="direccion" required>
-                </div>
-                <div>
-                    <label for="telefono">Teléfono:</label>
-                    <input type="tel" id="telefono" name="telefono" required>
-                </div>
-                <div>
-                    <label for="metodoPago">Método de Pago:</label>
-                    <select id="metodoPago" name="metodoPago" required>
-                        <option value="tarjeta">Tarjeta de Crédito/Débito</option>
-                        <option value="efectivo">Efectivo contra entrega</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="metodoEntrega">Método de Entrega:</label>
-                    <select id="metodoEntrega" name="metodoEntrega" required>
-                        <option value="domicilio">Domicilio</option>
-                        <option value="recogida">Recogida en tienda</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="instrucciones">Instrucciones Especiales:</label>
-                    <textarea id="instrucciones" name="instrucciones" rows="4" placeholder="Escribe cualquier instrucción especial aquí..."></textarea>
-                </div>
-                <button type="submit">Confirmar Compra</button>
-            </form>
-        </div>
-        
     </div>
 
     <footer>
@@ -101,197 +78,123 @@
 
     <script>
         async function cargarCompras() {
-    const clienteId = sessionStorage.getItem('userId'); // Usamos 'userId' que se almacena en sessionStorage
+            const clienteId = sessionStorage.getItem('userId'); // Usamos 'userId' que se almacena en sessionStorage
 
-    if (!clienteId) {
-        alert('Por favor, inicia sesión.');
-        window.location.href = 'login.html';
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/compras/${clienteId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Error al obtener compras del cliente');
-        }
-
-        const compras = await response.json();
-        console.log('Compras encontradas:', compras);
-
-        const purchaseList = document.getElementById('purchaseList');
-        purchaseList.innerHTML = ''; // Limpiar la lista de compras
-
-        if (compras[0] && compras[0].length > 0) {
-            // Agrupar por OrdenID
-            const comprasAgrupadas = compras[0].reduce((acc, compra) => {
-                if (!acc[compra.OrdenID]) {
-                    acc[compra.OrdenID] = {
-                        Estado: compra.Estado,
-                        FechaOrden: compra.FechaOrden,
-                        Productos: []
-                    };
-                }
-                acc[compra.OrdenID].Productos.push(compra);
-                return acc;
-            }, {});
-
-            // Generar filas por cada OrdenID
-            Object.keys(comprasAgrupadas).forEach(ordenId => {
-                const orden = comprasAgrupadas[ordenId];
-                const fecha = new Date(orden.FechaOrden);
-                const fechaFormateada = `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
-
-                const productosHTML = orden.Productos.map(producto => `
-                    <div>${producto.Producto} (Cantidad: ${producto.Cantidad}, Precio: $${producto.Precio})</div>
-                `).join('');
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${ordenId}</td>
-                    <td>${orden.Estado}</td>
-                    <td>${productosHTML}</td>
-                    <td>${fechaFormateada}</td>
-                    <td>
-                        <button 
-                            class="pay-btn" 
-                            data-orden-id="${ordenId}" 
-                            ${orden.Estado === 'Pagada' ? 'disabled' : ''}
-                        >
-                            ${orden.Estado === 'Pagada' ? 'Pagada' : 'Pagar'}
-                        </button>
-                    </td>
-                `;
-                purchaseList.appendChild(row);
-            });
-
-            // Asignar eventos a los botones de pago
-            const payButtons = document.querySelectorAll('.pay-btn');
-            payButtons.forEach(button => {
-                button.addEventListener('click', async (e) => {
-                    const ordenId = e.target.getAttribute('data-orden-id');
-                    await pagarOrden(ordenId);
-                });
-            });
-        } else {
-            const row = document.createElement('tr');
-            row.innerHTML = `<td colspan="5">No has realizado compras aún.</td>`;
-            purchaseList.appendChild(row);
-        }
-    } catch (error) {
-        console.error('Error al cargar compras del cliente:', error);
-        alert('Error al cargar compras del cliente');
-    }
-}
-
-async function pagarOrden(ordenId) {
-    // Cambiar el panel visible al formulario de compra
-    document.querySelector('.panel.active').classList.remove('active');
-    const formularioCompra = document.getElementById('formularioCompra');
-    formularioCompra.style.display = 'block';
-    formularioCompra.classList.add('active');
-
-    // Prepara el formulario para capturar la orden actual
-    const compraForm = document.getElementById('compraForm');
-    compraForm.dataset.ordenId = ordenId; // Asignar OrdenID al formulario
-
-    console.log(`Formulario abierto para OrdenID: ${ordenId}`);
-
-    // Escuchar el envío del formulario
-    compraForm.onsubmit = async function (event) {
-        event.preventDefault(); // Prevenir envío por defecto
-
-        // Capturar datos del formulario
-        const formData = new FormData(compraForm);
-        const data = {
-            ordenId: compraForm.dataset.ordenId,
-            nombre: formData.get('nombre'),
-            direccion: formData.get('direccion'),
-            telefono: formData.get('telefono'),
-            metodoPago: formData.get('metodoPago'),
-            metodoEntrega: formData.get('metodoEntrega'),
-            instrucciones: formData.get('instrucciones'),
-        };
-
-        try {
-            // Enviar datos al backend
-            const response = await fetch('/api/ordenes/confirmar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                throw new Error('Error al confirmar la compra');
-            }
-
-            const result = await response.json();
-            alert(result.message);
-
-            // Volver al panel de compras
-            formularioCompra.style.display = 'none';
-            document.getElementById('compras').classList.add('active');
-            cargarCompras(); // Recargar las compras
-        } catch (error) {
-            console.error('Error al confirmar la compra:', error);
-            alert('Error al confirmar la compra. Inténtalo de nuevo.');
-        }
-    };
-}
-
-
-
-//window.onload = cargarCompras;
-
-
-
-        // Función para actualizar el perfil del cliente
-        async function actualizarPerfil(event) {    
-            event.preventDefault();
-
-            const userId = sessionStorage.getItem('userId');
-            if (!userId) {
-                alert('No se encontró el ID de usuario');
+            if (!clienteId) {
+                alert('Por favor, inicia sesión.');
+                window.location.href = 'login.html';
                 return;
             }
 
-            const nombre = document.getElementById('clientName').value;
-            const email = document.getElementById('clientEmail').value;
-            const telefono = document.getElementById('clientPhone').value;
-
             try {
-                const response = await fetch('/api/clientes/perfil', {
-                    method: 'POST',
+                const response = await fetch(`/api/compras/${clienteId}`, {
+                    method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        userId,
-                        nombre,
-                        email,
-                        telefono
-                    })
+                    }
                 });
 
                 if (!response.ok) {
-                    throw new Error('Error al actualizar perfil');
+                    throw new Error('Error al obtener compras del cliente');
                 }
 
-                const result = await response.json();
-                alert(result.message);
+                const compras = await response.json();
+                console.log('Compras encontradas:', compras);
+
+                const purchaseList = document.getElementById('purchaseList');
+                purchaseList.innerHTML = ''; // Limpiar la lista de compras
+
+                if (compras[0] && compras[0].length > 0) {
+                    // Agrupar por OrdenID
+                    const comprasAgrupadas = compras[0].reduce((acc, compra) => {
+                        if (!acc[compra.OrdenID]) {
+                            acc[compra.OrdenID] = {
+                                Estado: compra.Estado,
+                                FechaOrden: compra.FechaOrden,
+                                Productos: []
+                            };
+                        }
+                        acc[compra.OrdenID].Productos.push(compra);
+                        return acc;
+                    }, {});
+
+                    // Generar filas por cada OrdenID
+                    Object.keys(comprasAgrupadas).forEach(ordenId => {
+                        const orden = comprasAgrupadas[ordenId];
+                        const fecha = new Date(orden.FechaOrden);
+                        const fechaFormateada = `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
+
+                        const productosHTML = orden.Productos.map(producto => `
+                            <tr>
+                                <td colspan="2">${producto.Producto} (Cantidad: ${producto.Cantidad}, Precio: $${producto.Precio})</td>
+                                <td>
+                                    <button class="vendedor-btn" data-product-id="${producto.ProductoID}">Ver Vendedor</button>
+                                    <div class="vendedor-info" id="vendedor-${producto.ProductoID}"></div>
+                                </td>
+                            </tr>
+                        `).join('');
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${ordenId}</td>
+                            <td>
+                                <button 
+                                    class="pay-btn" 
+                                    data-orden-id="${ordenId}" 
+                                    ${orden.Estado === 'Pagada' ? 'disabled' : ''}>
+                                    ${orden.Estado === 'Pagada' ? 'Pagada' : 'Pagar'}
+                                </button>
+                            </td>
+                            <td>${orden.Estado}</td>
+                            <td>${fechaFormateada}</td>
+                            <td>${productosHTML}</td>
+                        `;
+                        purchaseList.appendChild(row);
+                    });
+
+                    // Asignar eventos a los botones "Ver Vendedor"
+                    const vendedorButtons = document.querySelectorAll('.vendedor-btn');
+                    vendedorButtons.forEach(button => {
+                        button.addEventListener('click', async (e) => {
+                            const productoId = e.target.getAttribute('data-product-id');
+                            console.log(productoId);
+                            const vendedorInfoDiv = document.getElementById(`vendedor-${productoId}`);
+
+                            // Si ya está visible, ocultar
+                            if (vendedorInfoDiv.style.display === 'block') {
+                                vendedorInfoDiv.style.display = 'none';
+                            } else {
+                                // Solicitar datos del vendedor por ProductoID
+                                const vendedorResponse = await fetch(`/api/vendedor/${productoId}`);
+                                const vendedorData = await vendedorResponse.json();
+
+                                // Mostrar información del vendedor
+                                console.log(vendedorData);
+                                vendedorInfoDiv.innerHTML = `
+                                    <strong>Empresa:</strong> ${vendedorData.NombreEmpresa}<br>
+                                    <strong>Nombre:</strong> ${vendedorData.Nombre}<br>
+                                    <strong>Contacto:</strong> ${vendedorData.Contacto}<br>
+                                    <strong>Ubicación:</strong> ${vendedorData.Ubicacion}<br>
+                                    <strong>Email:</strong> ${vendedorData.Email}
+                                `;
+
+                                vendedorInfoDiv.style.display = 'block';
+                            }
+                        });
+                    });
+
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td colspan="5">No has realizado compras aún.</td>`;
+                    purchaseList.appendChild(row);
+                }
             } catch (error) {
-                console.error('Error al actualizar perfil:', error);
-                alert('Error al actualizar perfil');
+                console.error('Error al cargar compras del cliente:', error);
+                alert('Error al cargar compras del cliente');
             }
         }
-        window.onload = cargarCompras();
-        // Asociar eventos y cargar datos
-        document.getElementById('profileForm').addEventListener('submit', actualizarPerfil);
+
+        // Cargar las compras cuando la página se carga
         window.onload = cargarCompras;
     </script>
 </body>
