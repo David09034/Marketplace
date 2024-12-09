@@ -171,8 +171,8 @@
         }
        
         //Confirmar Compra
-        //Confirmar Compra
-async function confirmarCompra() {
+  
+        async function confirmarCompra() {
     const response = await fetch('/api/carrito');
     const carrito = await response.json();
 
@@ -200,12 +200,15 @@ async function confirmarCompra() {
     console.log("Total calculado:", total);  // Verifica el total
 
     try {
-        // Paso 1: Crear la orden en el servidor
+        // Paso 1: Obtener el userId y asignar 7 por defecto si no existe
+        const userId = sessionStorage.getItem('userId') || 7; // Usar 7 si no se encuentra el userId
+
+        // Paso 2: Crear la orden en el servidor
         const ordenResponse = await fetch('/api/orden', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                userId: sessionStorage.getItem('userId') || null, // ID del usuario o null si es invitado
+                userId: userId, // Usar el userId (o 7 si no está en sessionStorage)
                 total: total // Enviar el total calculado
             })
         });
@@ -219,8 +222,8 @@ async function confirmarCompra() {
         console.log("Orden ID recibida:", ordenId);  // Verifica el ordenId recibido
         alert(message);  // Verifica el mensaje de éxito
 
-       // Paso 2: Insertar todos los detalles de la orden
-       const detalleResponse = await fetch('/api/detalle', {
+        // Paso 3: Insertar todos los detalles de la orden
+        const detalleResponse = await fetch('/api/detalle', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -235,7 +238,8 @@ async function confirmarCompra() {
 
         const detalleData = await detalleResponse.json();
         console.log('Detalles insertados correctamente:', detalleData);
-        // Paso 3: Registrar los datos de entrega
+
+        // Paso 4: Registrar los datos de entrega
         const entregaResponse = await fetch('/api/entrega', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -247,17 +251,17 @@ async function confirmarCompra() {
             throw new Error(`Error al registrar los datos de entrega: ${errorText}`);
         }
 
-        alert('Compra realizada con éxito. Gracias por tu pedido. Tú numero de orden es: ', ordenId);
-        // Verifica si el userId está presente en sessionStorage
-        const userId = sessionStorage.getItem('userId');
+        alert(`Compra realizada con éxito. Gracias por tu pedido. Tu número de orden es: ${ordenId}`);
 
-        if (userId) {
-            // Si userId no es null, redirige a la página cliente.html
+        // Redirigir dependiendo de si userId existe en sessionStorage
+        if (userId !== 7) {
+            // Si userId es diferente de 7, redirige a la página cliente.html
             window.location.href = '/cliente.html';
         } else {
-            // Si no hay userId (el usuario es invitado), redirige a la página de confirmación
+            // Si userId es 7 (invitado), redirige a la página de confirmación
             window.location.href = '/confirmacion'; // Redirigir a la página de confirmación
         }
+
     } catch (error) {
         console.error('Error al realizar la compra:', error);
         alert('Hubo un error al realizar la compra. Por favor, intenta de nuevo.');
