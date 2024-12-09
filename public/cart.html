@@ -25,9 +25,7 @@
     <main class="cart-section">
         <h2>Tu Carrito de Compras</h2>
         <div class="cart-container">
-            <!-- Aquí se mostrarán los productos en el carrito -->
             <div id="productos"></div>
-            
             <div class="cart-summary">
                 <p id="total">Total: $0.00</p>
                 <button class="checkout-btn" onclick="mostrarFormularioCompra()">Finalizar Compra</button>
@@ -38,35 +36,26 @@
     <!-- Formulario de Finalización de Compra (Oculto inicialmente) -->
     <div id="formularioCompra" style="display:none;">
         <h2>Formulario de Compra</h2>
-        <form id="compraForm">
-            <!-- Nombre Completo -->
+        <form id="compraForm" onsubmit="event.preventDefault(); cargarCarrito(); confirmarCompra();">
             <div>
                 <label for="nombre">Nombre Completo:</label>
                 <input type="text" id="nombre" name="nombre" required>
             </div>
-            
-            <!-- Dirección -->
             <div>
                 <label for="direccion">Dirección:</label>
                 <input type="text" id="direccion" name="direccion" required>
             </div>
-            
-            <!-- Teléfono -->
             <div>
                 <label for="telefono">Teléfono:</label>
                 <input type="tel" id="telefono" name="telefono" required>
             </div>
-
-            <!-- Método de Pago -->
             <div>
                 <label for="metodoPago">Método de Pago:</label>
                 <select id="metodoPago" name="metodoPago" required>
-                    <option value="tarjeta">Tarjeta de Crédito/Débito</option>
-                    <option value="efectivo">Efectivo contra entrega</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Efectivo">Efectivo contra entrega</option>
                 </select>
             </div>
-
-            <!-- Método de Entrega -->
             <div>
                 <label for="metodoEntrega">Método de Entrega:</label>
                 <select id="metodoEntrega" name="metodoEntrega" required>
@@ -74,13 +63,10 @@
                     <option value="recogida">Recogida en tienda</option>
                 </select>
             </div>
-
-            <!-- Instrucciones Especiales -->
             <div>
                 <label for="instrucciones">Instrucciones Especiales:</label>
                 <textarea id="instrucciones" name="instrucciones" rows="4" placeholder="Escribe cualquier instrucción especial aquí..."></textarea>
             </div>
-
             <button type="submit">Confirmar Compra</button>
         </form>
     </div>
@@ -91,35 +77,90 @@
     </footer>
 
     <script>
+        // Mostrar el formulario de compra o un mensaje alert si no hay sesión activa
+        async function mostrarFormularioCompra() {
+            const userId = sessionStorage.getItem("userId");
+
+            if (!userId) {
+                // Usamos un alert para preguntar si el usuario quiere continuar como invitado
+                const continuarComoInvitado = confirm("¿Deseas continuar como invitado?");
+
+                if (continuarComoInvitado) {
+                    // Mostrar el formulario para invitados
+                    mostrarFormulario("invitado");
+                } else {
+                    // Si no quiere continuar como invitado, redirigimos a login
+                    alert("Por favor, inicia sesión para continuar.");
+                    window.location.href = "Login.html"; // Redirigir a la página de inicio de sesión
+                }
+            } else {
+                // Mostrar el formulario de compra para usuario registrado
+                mostrarFormulario("usuario");
+            }
+        }
+
+        function mostrarFormulario(tipoUsuario) {
+            // Ocultar el carrito y mostrar el formulario de compra
+            document.querySelector('.cart-section').style.display = 'none';
+            document.getElementById('formularioCompra').style.display = 'block';
+
+            if (tipoUsuario === "invitado") {
+                document.getElementById('compraForm').querySelectorAll('input, select, textarea').forEach(element => {
+                    element.required = true;
+                    element.disabled = false; // Habilitar campos para invitados
+                });
+            } else if (tipoUsuario === "usuario") {
+                fetch(`/api/usuarios/${sessionStorage.getItem("userId")}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('nombre').value = data.Nombre;
+                        document.getElementById('direccion').value = data.Direccion;
+                        document.getElementById('telefono').value = data.Telefono;
+                    })
+                    .catch(error => console.error("Error al cargar los datos del usuario:", error));
+
+
+                document.getElementById('compraForm').querySelectorAll('input, select, textarea').forEach(element => {
+                    element.required = false;
+                    //element.disabled = true; // Deshabilitar campos para usuarios registrados
+                });
+            }
+        }
+
+        
+
         // Función para cargar los productos del carrito
         async function cargarCarrito() {
-            const response = await fetch('/api/carrito');
-            const carrito = await response.json();
-            const productosDiv = document.getElementById('productos');
-            let total = 0;
+    const response = await fetch('/api/carrito');
+    const carrito = await response.json();
+    const productosDiv = document.getElementById('productos'); // Agregar esta línea
 
-            productosDiv.innerHTML = ''; // Limpiar la lista de productos antes de cargar
+    let total = 0;
+    console.log(carrito);
 
-            carrito.forEach(item => {
-                const itemDiv = document.createElement('div');
-                itemDiv.classList.add('cart-item');
-                itemDiv.innerHTML = `
-                    <img src="${item.imagen}" alt="${item.nombre}">
-                    <div class="item-details">
-                        <h3>${item.nombre}</h3>
-                        <p>Precio: $${item.precio}</p>
-                        <p>Cantidad: ${item.cantidad}</p>
-                        <p>Total: $${(item.precio * item.cantidad).toFixed(2)}</p>
-                    </div>
-                    <button class="remove-btn" onclick="eliminarDelCarrito(${item.producto_id})">Eliminar</button>
-                `;
-                productosDiv.appendChild(itemDiv);
-                total += item.precio * item.cantidad;
-            });
+    // Limpiar la lista de productos antes de cargar
+    productosDiv.innerHTML = ''; // Limpiar el contenedor de productos
 
-            // Actualizar el total
-            document.getElementById('total').innerText = `Total: $${total.toFixed(2)}`;
-        }
+    carrito.forEach(item => {
+        total += item.precio * item.cantidad;
+        const itemDiv = document.createElement('div');
+        itemDiv.classList.add('cart-item');
+        itemDiv.innerHTML = `
+            <img src="${item.imagen}" alt="${item.nombre}">
+            <div class="item-details">
+                <h3>${item.nombre}</h3>
+                <p>Precio: $${item.precio}</p>
+                <p>Cantidad: ${item.cantidad}</p>
+                <p>Total: $${(item.precio * item.cantidad).toFixed(2)}</p>
+            </div>
+            <button class="remove-btn" onclick="eliminarDelCarrito(${item.producto_id})">Eliminar</button>
+        `;
+        productosDiv.appendChild(itemDiv);
+    });
+
+    document.getElementById('total').innerText = `Total: $${total.toFixed(2)}`;
+}
+
 
         // Función para eliminar productos del carrito
         async function eliminarDelCarrito(productId) {
@@ -128,32 +169,106 @@
             alert(data.message);
             cargarCarrito(); 
         }
+       
+        //Confirmar Compra
+        //Confirmar Compra
+async function confirmarCompra() {
+    const response = await fetch('/api/carrito');
+    const carrito = await response.json();
 
-        // Mostrar el formulario de compra cuando se hace clic en "Finalizar Compra"
-        function mostrarFormularioCompra() {
-            document.querySelector('.cart-section').style.display = 'none';  // Ocultar la sección del carrito
-            document.getElementById('formularioCompra').style.display = 'block';  // Mostrar el formulario de compra
-        }
+    let total = 0;
+    console.log(carrito);
 
-        // Manejo del formulario de compra
-        document.getElementById('compraForm').addEventListener('submit', (event) => {
-            event.preventDefault();  // Evita el envío del formulario
+    // Recopilar los datos de entrega
+    const entrega = {
+        nombre: document.getElementById('nombre').value,
+        direccion: document.getElementById('direccion').value,
+        telefono: document.getElementById('telefono').value,
+        metodoPago: document.getElementById('metodoPago').value,
+        metodoEntrega: document.getElementById('metodoEntrega').value,
+        instrucciones: document.getElementById('instrucciones').value
+    };
 
-            const nombre = document.getElementById('nombre').value;
-            const direccion = document.getElementById('direccion').value;
-            const telefono = document.getElementById('telefono').value;
-            const metodoPago = document.getElementById('metodoPago').value;
-            const metodoEntrega = document.getElementById('metodoEntrega').value;
-            const instrucciones = document.getElementById('instrucciones').value;
+    // Calcular el total
+    carrito.forEach(item => {
+        total += item.precio * item.cantidad;
+    });
 
-            // Aquí puedes hacer una llamada para procesar la compra en el servidor
-            console.log('Compra confirmada:', nombre, direccion, telefono, metodoPago, metodoEntrega, instrucciones);
+    document.getElementById('total').innerText = `Total: $${total.toFixed(2)}`;
 
-            // Redirigir a una página de confirmación (puedes cambiar la ruta)
-            window.location.href = '/confirmacion';  // Redirigir a la página de confirmación
+    console.log("Carrito:", carrito);  // Verifica el contenido del carrito
+    console.log("Total calculado:", total);  // Verifica el total
+
+    try {
+        // Paso 1: Crear la orden en el servidor
+        const ordenResponse = await fetch('/api/orden', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: sessionStorage.getItem('userId') || null, // ID del usuario o null si es invitado
+                total: total // Enviar el total calculado
+            })
         });
 
-        // Cargar el carrito de productos al cargar la página
+        if (!ordenResponse.ok) {
+            const errorText = await ordenResponse.text();
+            throw new Error(`Error al crear la orden: ${errorText}`);
+        }
+
+        const { ordenId, message } = await ordenResponse.json(); // Obtener el ordenId y el mensaje
+        console.log("Orden ID recibida:", ordenId);  // Verifica el ordenId recibido
+        alert(message);  // Verifica el mensaje de éxito
+
+       // Paso 2: Insertar todos los detalles de la orden
+       const detalleResponse = await fetch('/api/detalle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                order_id: ordenId  // Solo necesitamos enviar el order_id
+            })
+        });
+
+        if (!detalleResponse.ok) {
+            const errorData = await detalleResponse.json();
+            throw new Error('Error al insertar el detalle: ' + errorData.message);
+        }
+
+        const detalleData = await detalleResponse.json();
+        console.log('Detalles insertados correctamente:', detalleData);
+        // Paso 3: Registrar los datos de entrega
+        const entregaResponse = await fetch('/api/entrega', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ordenId, entrega }) // Enviar los datos de entrega con el ordenId
+        });
+
+        if (!entregaResponse.ok) {
+            const errorText = await entregaResponse.text();
+            throw new Error(`Error al registrar los datos de entrega: ${errorText}`);
+        }
+
+        alert('Compra realizada con éxito. Gracias por tu pedido. Tú numero de orden es: ', ordenId);
+        // Verifica si el userId está presente en sessionStorage
+        const userId = sessionStorage.getItem('userId');
+
+        if (userId) {
+            // Si userId no es null, redirige a la página cliente.html
+            window.location.href = '/cliente.html';
+        } else {
+            // Si no hay userId (el usuario es invitado), redirige a la página de confirmación
+            window.location.href = '/confirmacion'; // Redirigir a la página de confirmación
+        }
+    } catch (error) {
+        console.error('Error al realizar la compra:', error);
+        alert('Hubo un error al realizar la compra. Por favor, intenta de nuevo.');
+    }
+}
+
+
+
+
+
+
         window.onload = cargarCarrito;
     </script> 
 </body>

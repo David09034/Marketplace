@@ -177,21 +177,10 @@ app.post('/api/carrito', express.json(), (req, res) => {
 
 
 
-// Registro de Usuarios
 app.post('/api/registro', express.json(), async (req, res) => {
-    const { nombre, email, contraseña, telefono, rol, empresa, ubicacion } = req.body;
+    const { nombre, email, contraseña, telefono, rol, empresa, ubicacion, direccion } = req.body;
 
     try {
-        // Imprimir los valores recibidos
-        console.log("Datos recibidos:");
-        console.log("Nombre:", nombre);
-        console.log("Email:", email);
-        console.log("Contraseña:", contraseña);
-        console.log("Teléfono:", telefono);
-        console.log("Rol:", rol);
-        console.log("Empresa:", empresa);
-        console.log("Ubicación:", ubicacion);
-
         // Validar el formato del correo electrónico
         const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
@@ -201,36 +190,21 @@ app.post('/api/registro', express.json(), async (req, res) => {
         // Hashear la contraseña
         const hashedPassword = await bcrypt.hash(contraseña, 10);
 
-        // Imprimir la contraseña hasheada
-        console.log("Contraseña hasheada:", hashedPassword);
-
-        // Llamar al procedimiento almacenado
-        let query;
-        let values;
+        let query, values;
 
         if (rol === 'Productor') {
-            // Incluir los valores para el rol "Productor"
-            query = 'CALL REGISTRAR_USUARIO(?, ?, ?, ?, ?, ?, ?, @status)';
-            values = [nombre, email, hashedPassword, telefono, rol, empresa, ubicacion];
+            query = 'CALL REGISTRAR_USUARIO(?, ?, ?, ?, ?, ?, ?, NULL, @status)';
+            values = [nombre, email, hashedPassword, telefono, rol, empresa || null, ubicacion || null];
+        } else if (rol === 'Consumidor') {
+            query = 'CALL REGISTRAR_USUARIO(?, ?, ?, ?, ?, NULL, NULL, ?, @status)';
+            values = [nombre, email, hashedPassword, telefono, rol, direccion || null];
         } else {
-            // Para el rol "Consumidor", no se necesitan los nuevos campos
-            query = 'CALL REGISTRAR_USUARIO(?, ?, ?, ?, ?, NULL, NULL, @status)';
-            values = [nombre, email, hashedPassword, telefono, rol, null, null];
+            return res.status(400).json({ error: 'Rol inválido' });
         }
 
-        // Imprimir la consulta y los valores que se están pasando
-        console.log("Consulta:", query);
-        console.log("Valores:", values);
-
-        // Ejecutar la consulta
         await pool.query(query, values);
 
-        // Obtener el estado del procedimiento almacenado
         const [rows] = await pool.query('SELECT @status AS status');
-
-        // Imprimir el estado recibido del procedimiento almacenado
-        console.log("Estado del procedimiento almacenado:", rows[0].status);
-
         if (rows[0].status === 0) {
             return res.status(400).json({ error: 'El correo electrónico ya está registrado' });
         }
@@ -241,7 +215,6 @@ app.post('/api/registro', express.json(), async (req, res) => {
         res.status(500).json({ error: 'Error al registrar el usuario' });
     }
 });
-
 
 
 
@@ -292,7 +265,31 @@ app.post('/api/login', express.urlencoded({ extended: true }), async (req, res) 
     }
 });
 
+//Traer info para formulario compra
+// Ruta para obtener la información del usuario
+app.get('/api/usuarios/:userId', async (req, res) => {
+    const userId = req.params.userId;
 
+    try {
+        // Consulta para obtener los datos del usuario y su dirección
+        const [usuarioRows] = await pool.query(
+            `SELECT u.Nombre, u.Telefono, c.Direccion from Usuarios u
+            join Clientes c on u.UsuarioID = c.UsuarioID
+            WHERE u.UsuarioID = ?`, 
+            [userId]
+        );
+
+        // Verificar si se encontró el usuario
+        if (usuarioRows.length > 0) {
+            res.json(usuarioRows[0]); // Enviar los datos del usuario
+        } else {
+            res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+    } catch (error) {
+        console.error('Error al obtener datos del usuario:', error);
+        res.status(500).json({ error: 'Error al obtener los datos del usuario' });
+    }
+});
 
 
 // Obtener los productos en el carrito
@@ -468,6 +465,120 @@ app.get('/api/compras/:clienteId', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener las compras del cliente' });
     }
 });
+
+// Crear la orden y luego insertar los detalles
+app.post('/api/orden', async (req, res) => {
+    const { userId, total } = req.body;
+
+    // Asegúrate de que el carrito esté en la sesión
+    const carrito = req.session.carrito || []; // Usar el carrito de la sesión
+    console.log("Carrito recibido:", JSON.stringify(carrito, null, 2));  // Imprimir el carrito para ver su formato
+
+    //if (carrito.length === 0) {
+    //    return res.status(400).send('El carrito está vacío.');
+    //}
+
+    try {
+        // Llamar al procedimiento almacenado para crear la orden
+        const [ordenResult] = await pool.query('CALL CrearOrden(?, ?, @OrdenID)', [userId || 1, total]);
+
+        // Obtener el valor de la variable de salida @OrdenID
+        const [result] = await pool.query('SELECT @OrdenID AS OrdenID');
+        const ordenId = result[0].OrdenID;
+
+        // Verificar que el ID de la orden está en el resultado
+        if (!ordenId) {
+            throw new Error('No se pudo obtener el ID de la orden.');
+        }
+
+        console.log("Orden ID creada api:", ordenId);
+
+        res.status(201).json({ ordenId, message: 'Orden  con éxito' });
+    } catch (error) {
+        console.error('Error al crear la orden y los detalles:', error);
+        res.status(500).send('Error al crear la orden y los detalles.');
+    }
+});
+
+//DETALLE
+// Crear los detalles de la orden
+app.post('/api/detalle', async (req, res) => {
+    const { order_id } = req.body;  // Recibimos solo el ID de la orden, ya que el carrito está en la sesión
+
+    // Asegúrate de que el carrito esté en la sesión
+    const carrito = req.session.carrito || []; // Usar el carrito de la sesión
+    console.log("Carrito recibido:", JSON.stringify(carrito, null, 2));  // Verifica el contenido del carrito
+
+    // Validar que el carrito no esté vacío
+    if (carrito.length === 0) {
+        return res.status(400).send('El carrito está vacío.');
+    }
+
+    try {
+        // Recorrer el carrito y llamar al procedimiento almacenado CrearDetalle para cada producto
+        for (const item of carrito) {
+            const { producto_id, cantidad } = item;
+            // Llamar al procedimiento almacenado para insertar el detalle
+            const [detalleResult] = await pool.query('CALL CrearDetalle(?, ?, ?, @mensaje)', [order_id, producto_id, cantidad]);
+
+            // Obtener el valor de la variable de salida @mensaje
+            const [result] = await pool.query('SELECT @mensaje AS mensaje');
+            const mensaje = result[0].mensaje;
+
+            // Verificar si el mensaje tiene algún error
+            if (!mensaje || mensaje.includes("Error")) {
+                throw new Error(mensaje || 'Error desconocido al insertar el detalle.');
+            }
+        }
+
+        res.status(201).json({ message: 'Detalles insertados correctamente en la orden' });
+    } catch (error) {
+        console.error('Error al insertar los detalles de la orden:', error);
+        res.status(500).send('Error al insertar los detalles de la orden.');
+    }
+});
+
+
+
+
+
+//Entrega
+app.post('/api/entrega', async (req, res) => {
+    const { ordenId, entrega } = req.body;
+
+    // Validar que el ordenId esté presente
+    if (!ordenId) {
+        return res.status(400).send('El ID de la orden es obligatorio.');
+    }
+
+    // Validar que la información de entrega esté completa
+    if (!entrega || !entrega.nombre || !entrega.direccion || !entrega.telefono || !entrega.metodoPago || !entrega.metodoEntrega) {
+        return res.status(400).send('Faltan datos de entrega.');
+    }
+
+    try {
+        // Insertar los datos de entrega en la tabla
+        await pool.query(
+            'INSERT INTO DatosEntrega (OrdenID, Nombre, Direccion, Telefono, MetodoPago, MetodoEntrega, Instrucciones) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [
+                ordenId,
+                entrega.nombre,
+                entrega.direccion,
+                entrega.telefono,
+                entrega.metodoPago,
+                entrega.metodoEntrega,
+                entrega.instrucciones || null // Las instrucciones pueden ser opcionales
+            ]
+        );
+
+        res.status(201).send('Datos de entrega registrados con éxito.');
+    } catch (error) {
+        console.error('Error al registrar los datos de entrega:', error);
+        res.status(500).send('Error al registrar los datos de entrega.');
+    }
+});
+
+
 
 
 

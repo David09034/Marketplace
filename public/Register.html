@@ -6,16 +6,21 @@
     <title>Registro</title>
     <link rel="stylesheet" href="RegisterForm.css">
     <script>
-        // Función para mostrar campos adicionales al seleccionar "Productor"
+        // Función para mostrar campos adicionales según el rol seleccionado
         function mostrarCamposAdicionales() {
-            var rol = document.querySelector("select[name='rol']").value;
-            var camposProductor = document.getElementById("campos-productor");
+            const rol = document.querySelector("select[name='rol']").value;
+            const camposProductor = document.getElementById("campos-productor");
+            const campoDireccion = document.getElementById("campo-direccion");
 
-            // Mostrar u ocultar los campos según el rol seleccionado
             if (rol === "Productor") {
-                camposProductor.style.display = "block"; // Mostrar campos para "Productor"
+                camposProductor.style.display = "block";
+                campoDireccion.style.display = "none";
+            } else if (rol === "Consumidor") {
+                camposProductor.style.display = "none";
+                campoDireccion.style.display = "block";
             } else {
-                camposProductor.style.display = "none"; // Ocultar campos para "Productor"
+                camposProductor.style.display = "none";
+                campoDireccion.style.display = "none";
             }
         }
     </script>
@@ -26,19 +31,19 @@
             <h1>Registro</h1>
             <div class="input-box">
                 <input type="text" name="nombre" placeholder="Nombre" required>
-                <span class="icon">👤</span> <!-- Icono de usuario -->
+                <span class="icon">👤</span>
             </div>
             <div class="input-box">
                 <input type="password" name="contraseña" placeholder="Contraseña" required>
-                <span class="icon">🔒</span> <!-- Icono de candado -->
+                <span class="icon">🔒</span>
             </div>
             <div class="input-box">
                 <input type="email" name="email" placeholder="Correo" required>
-                <span class="icon">✉️</span> <!-- Icono de correo -->
+                <span class="icon">✉️</span>
             </div>
             <div class="input-box">
                 <input type="text" name="telefono" placeholder="Teléfono" required>
-                <span class="icon">📞</span> <!-- Icono de teléfono -->
+                <span class="icon">📞</span>
             </div>
             <div class="input-box">
                 <select name="rol" required onchange="mostrarCamposAdicionales()">
@@ -46,27 +51,27 @@
                     <option value="Productor">Productor</option>
                     <option value="Consumidor">Consumidor</option>
                 </select>
-                <span class="icon">👥</span> <!-- Icono de rol -->
+                <span class="icon">👥</span>
             </div>
 
             <!-- Campos adicionales solo para el rol "Productor" -->
             <div id="campos-productor" style="display: none;">
                 <div class="input-box">
-                    <input type="text" name="empresa" placeholder="Nombre de la empresa" >
-                    <span class="icon">🏢</span> <!-- Icono de empresa -->
+                    <input type="text" name="empresa" placeholder="Nombre de la empresa">
+                    <span class="icon">🏢</span>
                 </div>
                 <div class="input-box">
-                    <input type="text" name="ubicacion" placeholder="Ubicación de la empresa" >
-                    <span class="icon">🗺️</span> <!-- Icono de mapa para ubicación -->
+                    <input type="text" name="ubicacion" placeholder="Ubicación de la empresa">
+                    <span class="icon">🗺️</span>
                 </div>
-
-
             </div>
 
-                <!-- Botón para usuarios existentes -->
-            <div class="existing-user">
-                <p>¿Ya tienes una cuenta?</p>
-                <button onclick="window.location.href='Index.html'">Iniciar Sesión</button>
+            <!-- Campo adicional solo para el rol "Consumidor" -->
+            <div id="campo-direccion" style="display: none;">
+                <div class="input-box">
+                    <input type="text" name="direccion" placeholder="Dirección">
+                    <span class="icon">🏠</span>
+                </div>
             </div>
 
             <button type="submit">Registrarme</button>
