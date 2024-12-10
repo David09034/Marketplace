@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Ventas</title>
+    <link rel="stylesheet" href="vendedor-style.css">
+</head>
+<body>
+    <header>
+        <h1>Panel de Control del Vendedor - Mis Ventas</h1>
+    </header>
+
+    <nav>
+        <a href="Index.html">Inicio</a>
+        <a href="vendedor.html" class="tab-link" data-tab="productos">Administrar Productos</a>
+        <a href="MisVentas.html" class="tab-link active" data-tab="ventas">Mis Ventas</a>
+        <a href="#" class="tab-link" data-tab="perfil">Mi Perfil</a>
+    </nav>
+
+    <div class="container">
+        <div class="panel active" id="ventas">
+            <h2>Mis Ventas</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID de Venta</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Total</th>
+                        <th>Producto(s)</th>
+                    </tr>
+                </thead>
+                <tbody id="ventasList">
+                    <!-- Aquí se listarán las ventas -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer>
+        <p>Panel de Vendedor © 2024</p>
+    </footer>
+
+    <script>
+        async function cargarVentas() {
+            const userId = sessionStorage.getItem('userId');
+
+            if (!userId) {
+                alert('Por favor, inicia sesión.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/ventas/productor/${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al obtener las ventas del vendedor');
+                }
+
+                const ventas = await response.json();
+                const ventasList = document.getElementById('ventasList');
+
+                if (ventas && ventas.length > 0) {
+                    ventasList.innerHTML = ''; // Limpiar la lista actual
+
+                    const ordenesVistas = {};
+
+                    ventas.forEach(venta => {
+                        if (!ordenesVistas[venta.OrdenID]) {
+                            // Crear la fila de la orden
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td rowspan="${venta.Productos.length}">${venta.OrdenID}</td>
+                                <td rowspan="${venta.Productos.length}">${new Date(venta.FechaOrden).toLocaleString('es-ES', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}</td>
+                                <td rowspan="${venta.Productos.length}">${venta.Estado}</td>
+                                <td rowspan="${venta.Productos.length}">${venta.Total}</td>
+                                <td>${venta.Productos[0].Producto} (${venta.Productos[0].Cantidad}) - ${venta.Productos[0].Subtotal}</td>
+                            `;
+                            ventasList.appendChild(row);
+
+                            // Marcar esta orden como ya vista
+                            ordenesVistas[venta.OrdenID] = true;
+
+                            // Agregar los productos adicionales sin repetir la fila de la orden
+                            for (let i = 1; i < venta.Productos.length; i++) {
+                                const productRow = document.createElement('tr');
+                                productRow.innerHTML = `
+                                    <td>${venta.Productos[i].Producto} (${venta.Productos[i].Cantidad}) - ${venta.Productos[i].Subtotal}</td>
+                                `;
+                                ventasList.appendChild(productRow);
+                            }
+                        }
+                    });
+                } else {
+                    ventasList.innerHTML = '<tr><td colspan="5">No hay ventas registradas.</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error al cargar las ventas:', error);
+                alert('Error al cargar las ventas.');
+            }
+        }
+
+        // Llamar la función al cargar la página
+        window.onload = cargarVentas;
+    </script>
+</body>
+</html>

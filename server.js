@@ -6,7 +6,7 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 3000;
-const mod_var = 'M';
+const mod_var = 'D';
 
 const poolConfig = mod_var === 'D' ? {
     host: 'localhost',
@@ -291,27 +291,72 @@ app.get('/api/usuarios/:userId', async (req, res) => {
     }
 });
 
+// Endpoint para obtener las ventas realizadas por un productor
+app.get('/ventas/productor/:usuarioId', async (req, res) => {
+    const usuarioId = req.params.usuarioId;
 
-// Obtener los productos en el carrito
-app.get('/api/carrito', (req, res) => {
-    if (req.session.carrito) {
-        res.json(req.session.carrito);
-    } else {
-        res.json([]);  // Carrito vacío
+    try {
+        // Paso 1: Obtener el ProductorID asociado al UsuarioID
+        const [productorRows] = await pool.execute(
+            'SELECT ProductorID FROM Productores WHERE UsuarioID = ?',
+            [usuarioId]
+        );
+
+        if (productorRows.length === 0) {
+            return res.status(404).json({ message: 'Productor no encontrado' });
+        }
+
+        const productorId = productorRows[0].ProductorID;
+
+        // Paso 2: Obtener las órdenes del Productor
+        const [ordenesRows] = await pool.execute(
+            `SELECT 
+                o.OrdenID, o.FechaOrden, o.Total, o.Estado
+            FROM Ordenes o
+            JOIN OrdenDetalle od ON o.OrdenID = od.OrdenID
+            JOIN Productos p ON od.ProductoID = p.ProductoID
+            WHERE p.ProductorID = ? 
+            ORDER BY o.FechaOrden DESC`,
+            [productorId]
+        );
+
+        if (ordenesRows.length === 0) {
+            return res.status(404).json({ message: 'No hay ventas registradas para este productor' });
+        }
+
+        // Paso 3: Obtener detalles de los productos vendidos
+        const ventas = [];
+        
+        for (const orden of ordenesRows) {
+            const [productosRows] = await pool.execute(
+                `SELECT 
+                    p.Nombre AS Producto, od.Cantidad, od.PrecioUnitario AS Precio, od.Subtotal
+                FROM OrdenDetalle od
+                JOIN Productos p ON od.ProductoID = p.ProductoID
+                WHERE od.OrdenID = ?`,
+                [orden.OrdenID]
+            );
+
+            ventas.push({
+                OrdenID: orden.OrdenID,
+                FechaOrden: orden.FechaOrden,
+                Total: orden.Total,
+                Estado: orden.Estado,
+                Productos: productosRows,
+            });
+        }
+
+        // Devolver los resultados en formato JSON
+        res.json(ventas);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error en el servidor' });
     }
 });
 
-// Eliminar un producto del carrito
-app.delete('/api/carrito/:id', (req, res) => {
-    const productId = parseInt(req.params.id);
 
-    if (req.session.carrito) {
-        req.session.carrito = req.session.carrito.filter(item => item.producto_id !== productId);
-        res.status(200).json({ message: 'Producto eliminado del carrito' });
-    } else {
-        res.status(404).json({ message: 'Carrito vacío' });
-    }
-});
+
+
 
 
 // API para insertar un producto (con imagen en memoria)
