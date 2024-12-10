@@ -107,81 +107,101 @@
                 if (compras[0] && compras[0].length > 0) {
                     // Agrupar por OrdenID
                     const comprasAgrupadas = compras[0].reduce((acc, compra) => {
-                        if (!acc[compra.OrdenID]) {
-                            acc[compra.OrdenID] = {
-                                Estado: compra.Estado,
-                                FechaOrden: compra.FechaOrden,
-                                Productos: []
-                            };
-                        }
-                        acc[compra.OrdenID].Productos.push(compra);
-                        return acc;
-                    }, {});
+                    if (!acc[compra.OrdenID]) {
+                        acc[compra.OrdenID] = {
+                            Estado: compra.Estado,
+                            FechaOrden: compra.FechaOrden,
+                            Productos: []
+                        };
+                    }
+                    acc[compra.OrdenID].Productos.push({
+                        Producto: compra.Producto,
+                        Cantidad: compra.Cantidad,
+                        Precio: compra.Precio
+                    });
+                    return acc;
+                }, {});
+
 
                     // Generar filas por cada OrdenID
                     Object.keys(comprasAgrupadas).forEach(ordenId => {
-                        const orden = comprasAgrupadas[ordenId];
-                        const fecha = new Date(orden.FechaOrden);
-                        const fechaFormateada = `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
+                    const orden = comprasAgrupadas[ordenId];
+                    const fecha = new Date(orden.FechaOrden);
+                    const fechaFormateada = `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
 
-                        const productosHTML = orden.Productos.map(producto => `
-                            <tr>
-                                <td colspan="2">${producto.Producto} (Cantidad: ${producto.Cantidad}, Precio: $${producto.Precio})</td>
-                                <td>
-                                    <button class="vendedor-btn" data-product-id="${producto.ProductoID}">Ver Vendedor</button>
-                                    <div class="vendedor-info" id="vendedor-${producto.ProductoID}"></div>
-                                </td>
-                            </tr>
-                        `).join('');
+                    const productosHTML = orden.Productos.map(producto => `
+                        <div>
+                            <strong>${producto.Producto || 'Producto desconocido'}</strong> - 
+                            ${producto.Cantidad || 'N/A'} x $${producto.Precio || '0.00'}
+                        </div>
+                    `).join('');
 
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${ordenId}</td>
-                            <td>
-                                <button 
-                                    class="pay-btn" 
-                                    data-orden-id="${ordenId}" 
-                                    ${orden.Estado === 'Pagada' ? 'disabled' : ''}>
-                                    ${orden.Estado === 'Pagada' ? 'Pagada' : 'Pagar'}
-                                </button>
-                            </td>
-                            <td>${orden.Estado}</td>
-                            <td>${fechaFormateada}</td>
-                            <td>${productosHTML}</td>
-                        `;
-                        purchaseList.appendChild(row);
-                    });
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${ordenId}</td>
+                        <td>
+                            <button 
+                                class="pay-btn" 
+                                data-orden-id="${ordenId}" 
+                                ${orden.Estado === 'Pagada' ? 'disabled' : ''}>
+                                ${orden.Estado === 'Pagada' ? 'Pagada' : 'Pagar'}
+                            </button>
+                        </td>
+                        <td>${orden.Estado}</td>
+                        <td>${fechaFormateada}</td>
+                        <td>
+                            ${productosHTML}
+                            <button class="vendedor-btn" data-orden-id="${ordenId}">
+                                Ver Información de los Vendedores
+                            </button>
+                            <div class="vendedor-info" id="vendedor-${ordenId}" style="display: none;"></div>
+                        </td>
+                    `;
+                    purchaseList.appendChild(row);
+                });
+
+
 
                     // Asignar eventos a los botones "Ver Vendedor"
                     const vendedorButtons = document.querySelectorAll('.vendedor-btn');
                     vendedorButtons.forEach(button => {
-                        button.addEventListener('click', async (e) => {
-                            const productoId = e.target.getAttribute('data-product-id');
-                            console.log(productoId);
-                            const vendedorInfoDiv = document.getElementById(`vendedor-${productoId}`);
+                    button.addEventListener('click', async (e) => {
+                        const ordenId = e.target.getAttribute('data-orden-id');
+                        const vendedorInfoDiv = document.getElementById(`vendedor-${ordenId}`);
 
-                            // Si ya está visible, ocultar
-                            if (vendedorInfoDiv.style.display === 'block') {
-                                vendedorInfoDiv.style.display = 'none';
-                            } else {
-                                // Solicitar datos del vendedor por ProductoID
-                                const vendedorResponse = await fetch(`/api/vendedor/${productoId}`);
-                                const vendedorData = await vendedorResponse.json();
+                        // Alternar visibilidad
+                        if (vendedorInfoDiv.style.display === 'block') {
+                            vendedorInfoDiv.style.display = 'none';
+                        } else {
+                            try {
+                                // Llamada al backend para obtener la información de los vendedores
+                                const response = await fetch(`/api/vendedores/info/${ordenId}`);
+                                const vendedores = await response.json();
 
-                                // Mostrar información del vendedor
-                                console.log(vendedorData);
-                                vendedorInfoDiv.innerHTML = `
-                                    <strong>Empresa:</strong> ${vendedorData.NombreEmpresa}<br>
-                                    <strong>Nombre:</strong> ${vendedorData.Nombre}<br>
-                                    <strong>Contacto:</strong> ${vendedorData.Contacto}<br>
-                                    <strong>Ubicación:</strong> ${vendedorData.Ubicacion}<br>
-                                    <strong>Email:</strong> ${vendedorData.Email}
-                                `;
+                                // Generar HTML para cada vendedor
+                                if (vendedores.length > 0) {
+                                    vendedorInfoDiv.innerHTML = vendedores.map(vendedor => `
+                                        <strong>Producto:</strong> ${vendedor.nombre}<br>
+                                        <strong>Empresa:</strong> ${vendedor.NombreEmpresa}<br>
+                                        <strong>Contacto:</strong> ${vendedor.Contacto}<br>
+                                        <strong>Correo:</strong> ${vendedor.Correo}<br>
+                                        <strong>Ubicación:</strong> ${vendedor.Ubicacion}<br>
+                                        
+                                        <hr>
+                                    `).join('');
+                                } else {
+                                    vendedorInfoDiv.innerHTML = '<p>No se encontraron vendedores para esta orden.</p>';
+                                }
 
                                 vendedorInfoDiv.style.display = 'block';
+                            } catch (error) {
+                                console.error('Error al obtener información del vendedor:', error);
+                                alert('No se pudo cargar la información de los vendedores.');
                             }
-                        });
+                        }
                     });
+                });
+
 
                 } else {
                     const row = document.createElement('tr');
