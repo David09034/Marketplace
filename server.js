@@ -625,31 +625,35 @@ app.post('/api/entrega', async (req, res) => {
 
 
 // Ruta para obtener la información del vendedor por ProductoID
-app.get('/api/vendedor/:productoId', async (req, res) => {
-    const productoId = req.params.productoId;
+app.get('/api/vendedores/info/:ordenId', async (req, res) => {
+    const { ordenId } = req.params;
 
     try {
-        // Consulta para obtener los datos del vendedor relacionado con el producto
-        const [vendedorRows] = await pool.query(
-            `SELECT p.NombreEmpresa, p.Contacto, p.Ubicacion, u.Nombre, u.Email
-            FROM Productores p
-            JOIN Productos pd ON p.ProductorID = pd.ProductorID
-            JOIN Usuarios u on u.UsuarioID = p.UsuarioID
-            WHERE pd.ProductoID = ?`,
-            [productoId]
-        );
+        const [rows] = await pool.query(`
+           SELECT DISTINCT 
+                pr.nombre,
+                p.NombreEmpresa, 
+                p.Contacto, 
+                p.Ubicacion,
+                u.Email 
+            FROM 
+                OrdenDetalle od
+            JOIN 
+                Productos pr ON od.ProductoID = pr.ProductoID
+            JOIN 
+                Productores p ON pr.ProductorID = p.ProductorID
+            JOIN Usuarios u ON u.UsuarioID = p.UsuarioID 
+            WHERE 
+                od.OrdenID  = ?
+        `, [ordenId]);
 
-        // Verificar si se encontró al vendedor
-        if (vendedorRows.length > 0) {
-            res.json(vendedorRows[0]); // Enviar los datos del vendedor
-        } else {
-            res.status(404).json({ error: 'Vendedor no encontrado para este producto' });
-        }
+        res.json(rows);
     } catch (error) {
-        console.error('Error al obtener datos del vendedor:', error);
-        res.status(500).json({ error: 'Error al obtener los datos del vendedor' });
+        console.error('Error al obtener información de los vendedores:', error);
+        res.status(500).json({ error: 'Error al obtener información de los vendedores' });
     }
 });
+
 
 
 
