@@ -51,7 +51,7 @@
                 window.location.href = 'login.html';
                 return;
             }
-
+            console.log(userId);
             try {
                 const response = await fetch(`/ventas/productor/${userId}`, {
                     method: 'GET',
@@ -59,7 +59,7 @@
                         'Content-Type': 'application/json',
                     }
                 });
-
+                console.log(response);
                 if (!response.ok) {
                     throw new Error('Error al obtener las ventas del vendedor');
                 }
@@ -79,9 +79,17 @@
                             row.innerHTML = `
                                 <td rowspan="${venta.Productos.length}">${venta.OrdenID}</td>
                                 <td rowspan="${venta.Productos.length}">${new Date(venta.FechaOrden).toLocaleString('es-ES', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}</td>
-                                <td rowspan="${venta.Productos.length}">${venta.Estado}</td>
+                                <td rowspan="${venta.Productos.length}">
+                                    <select onchange="actualizarEstado(${venta.OrdenID}, this.value)">
+                                        <option value="Pendiente" ${venta.Estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                                        <option value="Pagado" ${venta.Estado === 'Pagado' ? 'selected' : ''}>Pagado</option>
+                                        <option value="Enviado" ${venta.Estado === 'Enviado' ? 'selected' : ''}>Enviado</option>
+                                        <option value="Completado" ${venta.Estado === 'Completado' ? 'selected' : ''}>Completado</option>
+                                        <option value="Cancelado" ${venta.Estado === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                                    </select>
+                                </td>
                                 <td rowspan="${venta.Productos.length}">${venta.Total}</td>
-                                <td>${venta.Productos[0].Producto} (${venta.Productos[0].Cantidad}) - ${venta.Productos[0].Subtotal}</td>
+                                <td>${venta.Productos[0].Producto} (${venta.Productos[0].Cantidad}) </td>
                             `;
                             ventasList.appendChild(row);
 
@@ -92,7 +100,7 @@
                             for (let i = 1; i < venta.Productos.length; i++) {
                                 const productRow = document.createElement('tr');
                                 productRow.innerHTML = `
-                                    <td>${venta.Productos[i].Producto} (${venta.Productos[i].Cantidad}) - ${venta.Productos[i].Subtotal}</td>
+                                    <td>${venta.Productos[i].Producto} (${venta.Productos[i].Cantidad})</td>
                                 `;
                                 ventasList.appendChild(productRow);
                             }
@@ -107,8 +115,33 @@
             }
         }
 
+        // Función para actualizar el estado de la orden
+        async function actualizarEstado(ordenId, nuevoEstado) {
+            try {
+                const response = await fetch(`/ventas/actualizarEstado`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ordenId,
+                        nuevoEstado,
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al actualizar el estado');
+                }
+
+                alert('Estado actualizado correctamente.');
+            } catch (error) {
+                console.error('Error al actualizar el estado:', error);
+                alert('Error al actualizar el estado.');
+            }
+        }
+
         // Llamar la función al cargar la página
         window.onload = cargarVentas;
-    </script>
+    </script>
 </body>
 </html>

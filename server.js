@@ -6,7 +6,7 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 3000;
-const mod_var = 'D';
+const mod_var = 'M';
 
 const poolConfig = mod_var === 'D' ? {
     host: 'localhost',
@@ -116,7 +116,9 @@ app.delete('/delete/producto/:productoID', async (req, res) => {
     }
 });
 
-
+app.get('/api/carrito', (req, res) => {
+    res.json(req.session.carrito || []); 
+});
 
 app.put('/update/producto/:id', async (req, res) => {
     const productId = req.params.id;
@@ -354,8 +356,34 @@ app.get('/ventas/productor/:usuarioId', async (req, res) => {
     }
 });
 
-
-
+//Actualizar estado compra
+app.post('/ventas/actualizarEstado', (req, res) => {
+    const { ordenId, nuevoEstado } = req.body;
+  
+    // Validar si el estado es uno de los valores permitidos
+    const estadosValidos = ['Pendiente', 'Pagado', 'Enviado', 'Completado', 'Cancelado'];
+    if (!estadosValidos.includes(nuevoEstado)) {
+      return res.status(400).json({ error: 'Estado no válido' });
+    }
+  
+    // Actualizar el estado en la base de datos
+    pool.query(
+      'UPDATE Ordenes SET Estado = ? WHERE OrdenID = ?',
+      [nuevoEstado, ordenId],
+      (error, results) => {
+        if (error) {
+          console.error('Error al actualizar el estado:', error);
+          return res.status(500).json({ error: 'Error al actualizar el estado de la orden' });
+        }
+  
+        if (results.affectedRows === 0) {
+          return res.status(404).json({ error: 'Orden no encontrada' });
+        }
+  
+        return res.json({ message: 'Estado de la orden actualizado correctamente' });
+      }
+    );
+  });
 
 
 
