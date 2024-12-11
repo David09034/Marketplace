@@ -335,9 +335,12 @@ app.get('/ventas/productor/:usuarioId', async (req, res) => {
                     p.Nombre AS Producto, od.Cantidad, od.PrecioUnitario AS Precio, od.Subtotal
                 FROM OrdenDetalle od
                 JOIN Productos p ON od.ProductoID = p.ProductoID
-                WHERE od.OrdenID = ?`,
-                [orden.OrdenID]
+                WHERE od.OrdenID = ?
+                AND p.ProductorID = ?`,
+                [orden.OrdenID, productorId] // Combina los parámetros en un único array
             );
+        
+        
 
             ventas.push({
                 OrdenID: orden.OrdenID,
