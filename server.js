@@ -5,7 +5,7 @@ const mysql = require('mysql2/promise');  // Importa mysql2 para promesas
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const app = express();
-const PORT = 3000;
+const PORT = 3020;
 const mod_var = 'M';
 
 const poolConfig = mod_var === 'D' ? {
@@ -17,7 +17,7 @@ const poolConfig = mod_var === 'D' ? {
     connectionLimit: 10,
     queueLimit: 0
 } : {
-    host: '192.168.1.16',
+    host: '192.168.1.23',
     user: 'admin1',
     password: 'admin1',
     database: 'tienda',
@@ -575,6 +575,22 @@ app.post('/api/orden', async (req, res) => {
         res.status(500).send('Error al crear la orden y los detalles.');
     }
 });
+//Borrar del carrito
+app.delete('/api/carrito/:productId', (req, res) => {
+    const productId = parseInt(req.params.productId); // Asegurarse de que sea un número
+    console.log(productId)
+
+    // Filtrar para eliminar el producto del carrito
+    const nuevoCarrito = req.session.carrito.filter(item => item.producto_id !== productId);
+
+    // Verificar si hubo cambios
+    if (nuevoCarrito.length === req.session.carrito.length) {
+        return res.status(404).json({ message: 'Producto no encontrado en el carrito.' });
+    }
+
+    req.session.carrito = nuevoCarrito; // Actualizar el carrito en la sesión
+    res.json({ message: 'Producto eliminado del carrito exitosamente.' });
+});
 
 //DETALLE
 // Crear los detalles de la orden
@@ -685,6 +701,35 @@ app.get('/api/vendedores/info/:ordenId', async (req, res) => {
     }
 });
 
+// Ruta para obtener la información del comprador por OrdenID
+app.get('/api/compradores/info/:ordenId', async (req, res) => {
+    const { ordenId } = req.params;
+
+    try {
+        const [rows] = await pool.query(`
+            SELECT 
+                Nombre, 
+                Telefono, 
+                Direccion,
+                MetodoPago,
+                MetodoEntrega,
+                Instrucciones
+            FROM 
+                DatosEntrega
+            WHERE 
+                OrdenID = ?
+        `, [ordenId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'No se encontró información del comprador para esta orden.' });
+        }
+
+        res.json(rows[0]); // Enviar el primer resultado, suponiendo que solo hay un comprador por orden
+    } catch (error) {
+        console.error('Error al obtener información del comprador:', error);
+        res.status(500).json({ error: 'Error al obtener información del comprador.' });
+    }
+});
 
 
 

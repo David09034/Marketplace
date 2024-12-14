@@ -44,57 +44,25 @@
         <ul class="nav-links">
             <li><a href="Index.html"><i class="fas fa-home"></i> Inicio</a></li>
             <li><a href="nosotros.html"><i class="fas fa-users"></i> Nosotros</a></li>
-            <li><a href="cart.html"><i class="fas fa-shopping-cart"></i> Carrito</a></li>
+            <li><a href="cart.html"><i class="fas fa-shopping-cart"></i> Carrito
+                <span id="cart-count">0</span></a>
+            </li>
             <li><a href="Login.html"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</a></li>
         </ul>
     </nav>
-    
 
-    
-   <!-- Encabezado -->
-<header class="header">
-    <div class="logo-container">
-        <img src="static/puce-logo.png" alt="Logo PUCE Ecuador" class="logo puce-logo">
-        <h1>Comercio Electrónico en Chugchilán</h1>
-        <img src="static/BANDERA-GAD.png" alt="Logo GAD Chugchilán" class="logo gad-logo">
-    </div>
-    <p>Apoya a los productores locales y explora una variedad de productos únicos.</p>
-</header>
-
+    <!-- Encabezado -->
+    <header class="header">
+        <div class="logo-container">
+            <img src="static/puce-logo.png" alt="Logo PUCE Ecuador" class="logo puce-logo">
+            <h1>Comercio Electrónico en Chugchilán</h1>
+            <img src="static/BANDERA-GAD.png" alt="Logo GAD Chugchilán" class="logo gad-logo">
+        </div>
+        <p>Apoya a los productores locales y explora una variedad de productos únicos.</p>
+    </header>
 
     <!-- Cuerpo -->
     <main>
-        <!-- Bienvenida -->
-        <div class="banner-section">
-            <section class="welcome">
-                <h2>Descubre lo que Chugchilán tiene para ofrecer</h2>
-                <p>Compra productos locales y apoya el comercio justo mientras disfrutas de la belleza de este lugar.</p>
-                <p2>Nuestros Productos Destacados</p2>
-            </section>
-
-            <!-- Atracciones y Comercio -->
-            <section class="attractions">
-                <div class="cards">
-                    <div class="card">
-                        <img src="static/chochos.png" alt="Chocho Andino">
-                        <h3>Chocho Andino</h3>
-                        <p>Deliciosos chochos, ideales para ensaladas o como snack saludable.</p>
-                    </div>
-                    <div class="card">
-                        <img src="static/mora.avif" alt="Mora Fresca">
-                        <h3>Mora Fresca</h3>
-                        <p>Disfruta de la mora fresca, rica en antioxidantes y perfectas para jugos o postres naturales.</p>
-                    </div>
-                    <div class="card">
-                        <img src="static/artesanias.avif" alt="Artesanías de Chugchilán">
-                        <h3>Artesanías de Chugchilán</h3>
-                        <p>Hermosas piezas hechas a mano por los talentosos artesanos locales, un regalo único y lleno de cultura.</p>
-                    </div>
-                </div>
-            </section>
-            
-        </div>
-
         <!-- Buscador y Productos Dinámicos -->
         <section class="product-section">
             <h2>Productos Disponibles</h2>
@@ -124,6 +92,38 @@
                 <!-- Los productos se agregarán dinámicamente aquí -->
             </div>
         </section>
+
+        <!-- Bienvenida -->
+        <div class="banner-section">
+            <section class="welcome">
+                <h2>Descubre lo que Chugchilán tiene para ofrecer</h2>
+                <p>Compra productos locales y apoya el comercio justo mientras disfrutas de la belleza de este lugar.</p>
+                
+            </section>
+
+            <!-- Atracciones y Comercio -->
+            <section class="attractions">
+                <h5>Nuestros Productos Destacados</h5>
+                <div class="cards">
+                    
+                    <div class="card">
+                        <img src="static/chochos.png" alt="Chocho Andino">
+                        <h3>Chocho Andino</h3>
+                        <p>Deliciosos chochos, ideales para ensaladas o como snack saludable.</p>
+                    </div>
+                    <div class="card">
+                        <img src="static/mora.avif" alt="Mora Fresca">
+                        <h3>Mora Fresca</h3>
+                        <p>Disfruta de la mora fresca, rica en antioxidantes y perfectas para jugos o postres naturales.</p>
+                    </div>
+                    <div class="card">
+                        <img src="static/artesanias.avif" alt="Artesanías de Chugchilán">
+                        <h3>Artesanías de Chugchilán</h3>
+                        <p>Hermosas piezas hechas a mano por los talentosos artesanos locales, un regalo único y lleno de cultura.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 
     <!-- Pie de página -->
@@ -175,29 +175,60 @@
             mostrarProductos(productosFiltrados);
         }
 
-        async function agregarAlCarrito(productId, nombre, precio, imagen) {
-            const response = await fetch('/api/carrito', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    producto_id: productId,
-                    nombre: nombre,
-                    precio: precio,
-                    imagen: imagen,
-                    cantidad: 1
-                })
-            });
+        
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                alert(`Error: ${errorData.message}`);
-            } else {
-                const data = await response.json();
-                alert(data.message);
-            }
-        }
+// Función para actualizar el contador de elementos en el carrito
+async function actualizarContadorCarrito() {
+    try {
+        const response = await fetch('/api/carrito');
+        const carrito = await response.json();
+        
+        // Contar los productos en el carrito (suma de las cantidades de cada producto)
+        const cantidadTotal = carrito.reduce((total, item) => total + item.cantidad, 0);
+        
+        // Actualizar el contador en el carrito
+        document.getElementById('cart-count').innerText = cantidadTotal;
+    } catch (error) {
+        console.error('Error al obtener el carrito:', error);
+    }
+    
+}
+
+// Llamar a la función para actualizar el contador cuando se carga la página
+window.onload = async function() {
+    await actualizarContadorCarrito();
+    cargarProductos(); // Cargar productos después de actualizar el contador
+}
+
+async function agregarAlCarrito(productId, nombre, precio, imagen) {
+    const response = await fetch('/api/carrito', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            producto_id: productId,
+            nombre: nombre,
+            precio: precio,
+            imagen: imagen,
+            cantidad: 1
+        })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.message}`);
+    } else {
+        const data = await response.json();
+        // Actualizar el contador del carrito
+        
+        //document.getElementById('cart-count').textContent = cartCount;
+        // Guardar el contador actualizado en el almacenamiento local para persistencia
+        
+        // Mostrar un mensaje de éxito
+        alert(data.message);
+    }
+}
 
         cargarProductos();
     </script>

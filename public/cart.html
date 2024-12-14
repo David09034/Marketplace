@@ -11,7 +11,7 @@
     <!-- Barra de Navegación -->
     <nav class="navbar">
         <div class="logo">
-            <h1>Chugchilán</h1>
+            <h1>Mi carrito</h1>
         </div>
         <ul class="nav-links">
             <li><a href="Index.html"><i class="fas fa-home"></i> Inicio</a></li>
@@ -36,6 +36,10 @@
     <!-- Formulario de Finalización de Compra (Oculto inicialmente) -->
     <div id="formularioCompra" style="display:none;">
         <h2>Formulario de Compra</h2>
+        <!-- Mensaje de validación -->
+        <div id="mensaje-validacion" style="background-color: #ffeeba; border: 1px solid #f5c6cb; color: #856404; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
+            <strong>Nota Importante:</strong> Asegúrate de que la información proporcionada sea <strong>válida y verdadera</strong>. Los vendedores usarán estos datos para contactarte y coordinar la entrega de tus productos.
+        </div>
         <form id="compraForm" onsubmit="event.preventDefault(); cargarCarrito(); confirmarCompra();">
             <div>
                 <label for="nombre">Nombre Completo:</label>
@@ -70,6 +74,7 @@
             <button type="submit">Confirmar Compra</button>
         </form>
     </div>
+    
 
     <!-- Pie de página -->
     <footer class="footer">
@@ -80,6 +85,14 @@
         // Mostrar el formulario de compra o un mensaje alert si no hay sesión activa
         async function mostrarFormularioCompra() {
             const userId = sessionStorage.getItem("userId");
+
+            const carritoResponse = await fetch('/api/carrito');
+            const carrito = await carritoResponse.json();
+
+            if (carrito.length === 0) {
+                alert("Tu carrito está vacío. Por favor, agrega productos antes de continuar.");
+                return; // Detener la ejecución si el carrito está vacío
+            }
 
             if (!userId) {
                 // Usamos un alert para preguntar si el usuario quiere continuar como invitado
@@ -131,35 +144,35 @@
 
         // Función para cargar los productos del carrito
         async function cargarCarrito() {
-    const response = await fetch('/api/carrito');
-    const carrito = await response.json();
-    const productosDiv = document.getElementById('productos'); // Agregar esta línea
+        const response = await fetch('/api/carrito');
+        const carrito = await response.json();
+        const productosDiv = document.getElementById('productos'); // Agregar esta línea
 
-    let total = 0;
-    console.log(carrito);
+        let total = 0;
+        console.log(carrito);
 
-    // Limpiar la lista de productos antes de cargar
-    productosDiv.innerHTML = ''; // Limpiar el contenedor de productos
+        // Limpiar la lista de productos antes de cargar
+        productosDiv.innerHTML = ''; // Limpiar el contenedor de productos
 
-    carrito.forEach(item => {
-        total += item.precio * item.cantidad;
-        const itemDiv = document.createElement('div');
-        itemDiv.classList.add('cart-item');
-        itemDiv.innerHTML = `
-            <img src="${item.imagen}" alt="${item.nombre}">
-            <div class="item-details">
-                <h3>${item.nombre}</h3>
-                <p>Precio: $${item.precio}</p>
-                <p>Cantidad: ${item.cantidad}</p>
-                <p>Total: $${(item.precio * item.cantidad).toFixed(2)}</p>
-            </div>
-            <button class="remove-btn" onclick="eliminarDelCarrito(${item.producto_id})">Eliminar</button>
-        `;
-        productosDiv.appendChild(itemDiv);
-    });
+        carrito.forEach(item => {
+            total += item.precio * item.cantidad;
+            const itemDiv = document.createElement('div');
+            itemDiv.classList.add('cart-item');
+            itemDiv.innerHTML = `
+                <img src="${item.imagen}" alt="${item.nombre}">
+                <div class="item-details">
+                    <h3>${item.nombre}</h3>
+                    <p>Precio: $${item.precio}</p>
+                    <p>Cantidad: ${item.cantidad}</p>
+                    <p>Total: $${(item.precio * item.cantidad).toFixed(2)}</p>
+                </div>
+                <button class="remove-btn" onclick="eliminarDelCarrito(${item.producto_id})">Eliminar</button>
+            `;
+            productosDiv.appendChild(itemDiv);
+        });
 
-    document.getElementById('total').innerText = `Total: $${total.toFixed(2)}`;
-}
+        document.getElementById('total').innerText = `Total: $${total.toFixed(2)}`;
+    }
 
 
         // Función para eliminar productos del carrito
@@ -173,103 +186,100 @@
         //Confirmar Compra
   
         async function confirmarCompra() {
-    const response = await fetch('/api/carrito');
-    const carrito = await response.json();
+        const response = await fetch('/api/carrito');
+        const carrito = await response.json();
 
-    let total = 0;
-    console.log(carrito);
+        let total = 0;
+        console.log(carrito);
 
-    // Recopilar los datos de entrega
-    const entrega = {
-        nombre: document.getElementById('nombre').value,
-        direccion: document.getElementById('direccion').value,
-        telefono: document.getElementById('telefono').value,
-        metodoPago: document.getElementById('metodoPago').value,
-        metodoEntrega: document.getElementById('metodoEntrega').value,
-        instrucciones: document.getElementById('instrucciones').value
-    };
+        // Recopilar los datos de entrega
+        const entrega = {
+            nombre: document.getElementById('nombre').value,
+            direccion: document.getElementById('direccion').value,
+            telefono: document.getElementById('telefono').value,
+            metodoPago: document.getElementById('metodoPago').value,
+            metodoEntrega: document.getElementById('metodoEntrega').value,
+            instrucciones: document.getElementById('instrucciones').value
+        };
 
-    // Calcular el total
-    carrito.forEach(item => {
-        total += item.precio * item.cantidad;
-    });
-
-    document.getElementById('total').innerText = `Total: $${total.toFixed(2)}`;
-
-    console.log("Carrito:", carrito);  // Verifica el contenido del carrito
-    console.log("Total calculado:", total);  // Verifica el total
-
-    try {
-        // Paso 1: Obtener el userId y asignar 7 por defecto si no existe
-        const userId = sessionStorage.getItem('userId') || 7; // Usar 7 si no se encuentra el userId
-
-        // Paso 2: Crear la orden en el servidor
-        const ordenResponse = await fetch('/api/orden', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId: userId, // Usar el userId (o 7 si no está en sessionStorage)
-                total: total // Enviar el total calculado
-            })
+        // Calcular el total
+        carrito.forEach(item => {
+            total += item.precio * item.cantidad;
         });
 
-        if (!ordenResponse.ok) {
-            const errorText = await ordenResponse.text();
-            throw new Error(`Error al crear la orden: ${errorText}`);
+        document.getElementById('total').innerText = `Total: $${total.toFixed(2)}`;
+
+        console.log("Carrito:", carrito);  // Verifica el contenido del carrito
+        console.log("Total calculado:", total);  // Verifica el total
+
+        try {
+            // Paso 1: Obtener el userId y asignar 7 por defecto si no existe
+            const userId = sessionStorage.getItem('userId') || 7; // Usar 7 si no se encuentra el userId
+
+            // Paso 2: Crear la orden en el servidor
+            const ordenResponse = await fetch('/api/orden', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: userId, // Usar el userId (o 7 si no está en sessionStorage)
+                    total: total // Enviar el total calculado
+                })
+            });
+
+            if (!ordenResponse.ok) {
+                const errorText = await ordenResponse.text();
+                throw new Error(`Error al crear la orden: ${errorText}`);
+            }
+
+            const { ordenId, message } = await ordenResponse.json(); // Obtener el ordenId y el mensaje
+            console.log("Orden ID recibida:", ordenId);  // Verifica el ordenId recibido
+            alert(message);  // Verifica el mensaje de éxito
+
+            // Paso 3: Insertar todos los detalles de la orden
+            const detalleResponse = await fetch('/api/detalle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    order_id: ordenId  // Solo necesitamos enviar el order_id
+                })
+            });
+
+            if (!detalleResponse.ok) {
+                const errorData = await detalleResponse.json();
+                throw new Error('Error al insertar el detalle: ' + errorData.message);
+            }
+
+            const detalleData = await detalleResponse.json();
+            console.log('Detalles insertados correctamente:', detalleData);
+
+            // Paso 4: Registrar los datos de entrega
+            const entregaResponse = await fetch('/api/entrega', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ordenId, entrega }) // Enviar los datos de entrega con el ordenId
+            });
+
+            if (!entregaResponse.ok) {
+                const errorText = await entregaResponse.text();
+                throw new Error(`Error al registrar los datos de entrega: ${errorText}`);
+            }
+
+            alert(`Compra realizada con éxito. Gracias por tu pedido. Tu número de orden es: ${ordenId}`);
+
+            // Redirigir dependiendo de si userId existe en sessionStorage
+            if (userId !== 7) {
+                // Si userId es diferente de 7, redirige a la página cliente.html
+                window.location.href = '/cliente.html';
+            } else {
+                // Si userId es 7 (invitado), redirige a la página de confirmación
+                window.location.href = '/index.html'; // Redirigir a la página de confirmación
+            }
+
+        } catch (error) {
+            console.error('Error al realizar la compra:', error);
+            alert('Hubo un error al realizar la compra. Por favor, intenta de nuevo.');
         }
-
-        const { ordenId, message } = await ordenResponse.json(); // Obtener el ordenId y el mensaje
-        console.log("Orden ID recibida:", ordenId);  // Verifica el ordenId recibido
-        alert(message);  // Verifica el mensaje de éxito
-
-        // Paso 3: Insertar todos los detalles de la orden
-        const detalleResponse = await fetch('/api/detalle', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                order_id: ordenId  // Solo necesitamos enviar el order_id
-            })
-        });
-
-        if (!detalleResponse.ok) {
-            const errorData = await detalleResponse.json();
-            throw new Error('Error al insertar el detalle: ' + errorData.message);
-        }
-
-        const detalleData = await detalleResponse.json();
-        console.log('Detalles insertados correctamente:', detalleData);
-
-        // Paso 4: Registrar los datos de entrega
-        const entregaResponse = await fetch('/api/entrega', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ordenId, entrega }) // Enviar los datos de entrega con el ordenId
-        });
-
-        if (!entregaResponse.ok) {
-            const errorText = await entregaResponse.text();
-            throw new Error(`Error al registrar los datos de entrega: ${errorText}`);
-        }
-
-        alert(`Compra realizada con éxito. Gracias por tu pedido. Tu número de orden es: ${ordenId}`);
-
-        // Redirigir dependiendo de si userId existe en sessionStorage
-        if (userId !== 7) {
-            // Si userId es diferente de 7, redirige a la página cliente.html
-            window.location.href = '/cliente.html';
-        } else {
-            // Si userId es 7 (invitado), redirige a la página de confirmación
-            window.location.href = '/index.html'; // Redirigir a la página de confirmación
-        }
-
-    } catch (error) {
-        console.error('Error al realizar la compra:', error);
-        alert('Hubo un error al realizar la compra. Por favor, intenta de nuevo.');
     }
-}
-
-
-
 
 
 

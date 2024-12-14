@@ -29,10 +29,12 @@
                         <th>Estado</th>
                         <th>Total</th>
                         <th>Producto(s)</th>
+                        <th>Comprador</th>
                     </tr>
                 </thead>
                 <tbody id="ventasList">
                     <!-- Aquí se listarán las ventas -->
+                    
                 </tbody>
             </table>
         </div>
@@ -45,13 +47,12 @@
     <script>
         async function cargarVentas() {
             const userId = sessionStorage.getItem('userId');
-
+    
             if (!userId) {
                 alert('Por favor, inicia sesión.');
                 window.location.href = 'login.html';
                 return;
             }
-            console.log(userId);
             try {
                 const response = await fetch(`/ventas/productor/${userId}`, {
                     method: 'GET',
@@ -59,26 +60,25 @@
                         'Content-Type': 'application/json',
                     }
                 });
-                console.log(response);
+    
                 if (!response.ok) {
                     throw new Error('Error al obtener las ventas del vendedor');
                 }
-
+    
                 const ventas = await response.json();
                 const ventasList = document.getElementById('ventasList');
-
+    
                 if (ventas && ventas.length > 0) {
                     ventasList.innerHTML = ''; // Limpiar la lista actual
-
+    
                     const ordenesVistas = {};
-
+    
                     ventas.forEach(venta => {
                         if (!ordenesVistas[venta.OrdenID]) {
-                            // Crear la fila de la orden
                             const row = document.createElement('tr');
                             row.innerHTML = `
                                 <td rowspan="${venta.Productos.length}">${venta.OrdenID}</td>
-                                <td rowspan="${venta.Productos.length}">${new Date(venta.FechaOrden).toLocaleString('es-ES', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}</td>
+                                <td rowspan="${venta.Productos.length}">${new Date(venta.FechaOrden).toLocaleString('es-ES')}</td>
                                 <td rowspan="${venta.Productos.length}">
                                     <select onchange="actualizarEstado(${venta.OrdenID}, this.value)">
                                         <option value="Pendiente" ${venta.Estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
@@ -89,33 +89,63 @@
                                     </select>
                                 </td>
                                 <td rowspan="${venta.Productos.length}">${venta.Total}</td>
-                                <td>${venta.Productos[0].Producto} (${venta.Productos[0].Cantidad}) </td>
+                                <td>${venta.Productos[0].Producto} (${venta.Productos[0].Cantidad})</td>
+                                <td>
+                                    <button class="cliente-btn" data-orden-id="${venta.OrdenID}">Ver Comprador</button>
+                                    <div class="cliente-info" id="cliente-${venta.OrdenID}" style="display:none;"></div>
+                                </td>
                             `;
                             ventasList.appendChild(row);
-
-                            // Marcar esta orden como ya vista
-                            ordenesVistas[venta.OrdenID] = true;
-
-                            // Agregar los productos adicionales sin repetir la fila de la orden
+    
                             for (let i = 1; i < venta.Productos.length; i++) {
                                 const productRow = document.createElement('tr');
-                                productRow.innerHTML = `
-                                    <td>${venta.Productos[i].Producto} (${venta.Productos[i].Cantidad})</td>
-                                `;
+                                productRow.innerHTML = `<td>${venta.Productos[i].Producto} (${venta.Productos[i].Cantidad})</td>`;
                                 ventasList.appendChild(productRow);
                             }
+    
+                            ordenesVistas[venta.OrdenID] = true;
                         }
                     });
+    
+                    // Asignar evento a los botones
+                    document.querySelectorAll('.cliente-btn').forEach(button => {
+                        button.addEventListener('click', async (e) => {
+                            const ordenId = e.target.getAttribute('data-orden-id');
+                            const clienteInfoDiv = document.getElementById(`cliente-${ordenId}`);
+    
+                            if (clienteInfoDiv.style.display === 'block') {
+                                clienteInfoDiv.style.display = 'none';
+                            } else {
+                                try {
+                                    const response = await fetch(`/api/compradores/info/${ordenId}`);
+                                    const comprador = await response.json();
+    
+                                    clienteInfoDiv.innerHTML = `
+                                        <strong>Nombre:</strong> ${comprador.Nombre}<br>
+                                        
+                                        <strong>Teléfono:</strong> ${comprador.Telefono}<br>
+                                        <strong>Dirección:</strong> ${comprador.Direccion}<br>
+                                        <strong>Correo:</strong> ${comprador.MetodoPago}<br>
+                                        <strong>Correo:</strong> ${comprador.MetodoEntrega}<br>
+                                        <strong>Correo:</strong> ${comprador.Instrucciones}<br>
+                                    `;
+                                    clienteInfoDiv.style.display = 'block';
+                                } catch (error) {
+                                    console.error('Error al obtener información del comprador:', error);
+                                    alert('No se pudo cargar la información del comprador.');
+                                }
+                            }
+                        });
+                    });
                 } else {
-                    ventasList.innerHTML = '<tr><td colspan="5">No hay ventas registradas.</td></tr>';
+                    ventasList.innerHTML = '<tr><td colspan="6">No hay ventas registradas.</td></tr>';
                 }
             } catch (error) {
                 console.error('Error al cargar las ventas:', error);
                 alert('Error al cargar las ventas.');
             }
         }
-
-        // Función para actualizar el estado de la orden
+    
         async function actualizarEstado(ordenId, nuevoEstado) {
             try {
                 const response = await fetch(`/ventas/actualizarEstado`, {
@@ -123,25 +153,22 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        ordenId,
-                        nuevoEstado,
-                    }),
+                    body: JSON.stringify({ ordenId, nuevoEstado }),
                 });
-
+    
                 if (!response.ok) {
                     throw new Error('Error al actualizar el estado');
                 }
-
+    
                 alert('Estado actualizado correctamente.');
             } catch (error) {
                 console.error('Error al actualizar el estado:', error);
                 alert('Error al actualizar el estado.');
             }
         }
-
-        // Llamar la función al cargar la página
+    
         window.onload = cargarVentas;
-    </script>
+    </script>
+    
 </body>
 </html>

@@ -13,7 +13,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #1a3d2f; /* Verde oscuro */
+    background-color: #0056b3; /* Azul oscuro */
     padding: 10px 20px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
@@ -45,7 +45,7 @@ body {
 .header {
     text-align: center;
     padding: 50px 20px;
-    background: linear-gradient(135deg, #1a3d2f, #4caf50); /* Degradado verde */
+    background: linear-gradient(135deg, #0056b3, #4caf50); /* Degradado azul */
     color: #fff;
 }
 
@@ -183,7 +183,7 @@ body {
 
 /* Estilos para los créditos */
 .credits {
-    background-color: #1a3d2f;
+    background-color: #0056b3; /* Azul oscuro */
     color: #fff;
     padding: 20px;
     margin-top: 40px;
@@ -221,7 +221,7 @@ body {
 }
 
 .footer {
-    background-color: #1a3d2f;
+    background-color: #0056b3; /* Azul oscuro */
     color: #e9f7ef;
     text-align: center;
     padding: 20px;

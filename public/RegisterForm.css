@@ -11,7 +11,7 @@ body {
     align-items: center;
     height: 100vh;
     font-family: 'Raleway', sans-serif;
-    background: linear-gradient(135deg, #a8e6cf, #56ab2f);
+    background: linear-gradient(135deg, #1c99cf, #2a5fc1);
     color: #333;
 }
 
@@ -28,7 +28,7 @@ body {
 
 h1 {
     margin-bottom: 20px;
-    color: #2e7d32; /* Verde oscuro */
+    color: #0056b3; /* Azul claro */
     font-size: 24px;
     font-weight: 700;
 }
@@ -44,7 +44,7 @@ h1 {
     width: 100%;
     padding: 12px;
     padding-left: 40px;
-    border: 1px solid #c5e1a5; /* Verde claro */
+    border: 1px solid #c5e1a5; /* Verde claro unificado */
     border-radius: 8px;
     outline: none;
     transition: border-color 0.3s, box-shadow 0.3s;
@@ -52,8 +52,8 @@ h1 {
 
 .input-box input:focus,
 .input-box select:focus {
-    border-color: #81c784; /* Verde intermedio */
-    box-shadow: 0 0 5px rgba(129, 199, 132, 0.5);
+    border-color: #66bb6a; /* Verde intermedio */
+    box-shadow: 0 0 5px rgba(102, 187, 106, 0.5);
 }
 
 .icon {
@@ -66,7 +66,7 @@ h1 {
 
 /* Botón "Registrarme" */
 button[type="submit"] {
-    background-color: #43a047; /* Verde principal */
+    background-color: #0056b3; /* Azul principal */
     color: #ffffff;
     font-size: 16px;
     font-weight: bold;
@@ -89,7 +89,7 @@ button[type="submit"]:active {
 
 /* Botón para usuarios existentes */
 .existing-user button {
-    background-color: #4caf50; /* Verde brillante */
+    background-color: #0056b3; /* Azul principal */
     color: #ffffff;
     font-size: 14px;
     padding: 10px;

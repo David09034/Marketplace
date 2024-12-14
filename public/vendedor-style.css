@@ -10,7 +10,7 @@ body {
 
 /* Header */
 header {
-    background: linear-gradient(135deg, #388e3c, #81c784); /* Degradado verde */
+    background: linear-gradient(135deg, #0056b3, #66b3ff); /* Degradado azul */
     color: #fff;
     text-align: center;
     padding: 15px 0;
@@ -22,7 +22,7 @@ header {
 nav {
     display: flex;
     justify-content: center;
-    background-color: #388e3c; /* Verde oscuro */
+    background-color: #0056b3; /* Azul oscuro */
     padding: 10px 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -38,12 +38,12 @@ nav a {
 }
 
 nav a:hover {
-    background-color: #81c784; /* Verde claro */
+    background-color: #66b3ff; /* Azul claro */
     transform: scale(1.1);
 }
 
 nav a.active {
-    background-color: #81c784; /* Verde claro */
+    background-color: #66b3ff; /* Azul claro */
     border-radius: 5px;
 }
 
@@ -97,7 +97,7 @@ nav a.active {
 
 /* Botones */
 .btn {
-    background-color: #388e3c; /* Verde oscuro */
+    background-color: #0056b3; /* Azul oscuro */
     color: #fff;
     padding: 10px 15px;
     border: none;
@@ -110,13 +110,13 @@ nav a.active {
 }
 
 .btn:hover {
-    background-color: #81c784; /* Verde claro */
+    background-color: #66b3ff; /* Azul claro */
     transform: scale(1.05);
 }
 
 /* Botón de confirmación específico */
 #formularioCompra button[type="submit"] {
-    background-color: #28a745; /* Verde vibrante */
+    background-color: #007bff; /* Azul vibrante */
     color: #fff;
     font-size: 16px;
     padding: 10px 15px;
@@ -128,7 +128,7 @@ nav a.active {
 }
 
 #formularioCompra button[type="submit"]:hover {
-    background-color: #218838; /* Verde más oscuro */
+    background-color: #0056b3; /* Azul más oscuro */
     transform: translateY(-2px);
 }
 
@@ -170,7 +170,7 @@ nav a.active {
 
 /* Pie de página */
 .footer {
-    background-color: #1a3d2f;
+    background-color: #003366; /* Azul oscuro */
     color: #e9f7ef;
     text-align: center;
     padding: 20px;

@@ -8,7 +8,7 @@
 
 /* Barra de Navegación */
 .navbar {
-    background-color: #4CAF50; /* Color verde */
+    background-color: #1362b6; /* Azul principal */
     color: #fff;
     display: flex;
     justify-content: space-between;
@@ -38,7 +38,7 @@
 }
 
 .nav-links a:hover {
-    color: #ffd700;
+    color: #66b3ff; /* Azul más claro */
 }
 
 /* Estilo para las secciones principales */
@@ -92,7 +92,7 @@ main {
 .item-details h3 {
     margin-bottom: 8px;
     font-size: 18px;
-    color: #4CAF50; /* Verde para los títulos */
+    color: #007bff; /* Azul para los títulos */
 }
 
 .item-details p {
@@ -117,7 +117,7 @@ main {
 
 /* Botones de acción */
 .checkout-btn {
-    background-color: #4CAF50;
+    background-color: #007bff; /* Azul principal */
     color: white;
     padding: 12px 25px;
     border: none;
@@ -130,7 +130,7 @@ main {
 }
 
 .checkout-btn:hover {
-    background-color: #45a049;
+    background-color: #0056b3; /* Azul más oscuro */
 }
 
 /* Estilo para el formulario de compra */
@@ -147,7 +147,7 @@ main {
     text-align: center;
     font-size: 28px;
     margin-bottom: 25px;
-    color: #4CAF50;
+    color: #007bff; /* Azul para el título */
 }
 
 #formularioCompra form {
@@ -172,7 +172,7 @@ main {
 }
 
 #formularioCompra button {
-    background-color: #4CAF50;
+    background-color: #007bff; /* Azul principal */
     color: white;
     padding: 14px 25px;
     border: none;
@@ -185,16 +185,25 @@ main {
 }
 
 #formularioCompra button:hover {
-    background-color: #45a049;
+    background-color: #0056b3; /* Azul más oscuro */
 }
 
 /* Pie de página */
 .footer {
-    background-color: #1a3d2f;
+    background-color: #003366; /* Azul oscuro */
     color: #e9f7ef;
     padding: 12px;
     text-align: center;
     position: fixed;
     width: 100%;
     bottom: 0;
+}
+
+#mensaje-validacion {
+    background-color: #cce5ff;
+    border: 1px solid #b8daff;
+    color: #004085;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
 }
