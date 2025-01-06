@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Cliente</title>
+    <link rel="stylesheet" href="calificar-style.css">
+</head>
+<body>
+    <header>
+        <h1>Panel de Cliente - Calificar</h1>
+    </header>
+
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="cliente.html" class="tab-link active" data-tab="compras">Mis Compras</a>
+    </nav>
+
+    <div class="container">
+        <ul id="productList"></ul>
+    </div>
+
+
+    <footer class="footer">
+        <p>Panel del Cliente © 2024</p>
+    </footer>
+
+    <script>
+        async function cargarProductos() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const ordenId = urlParams.get('ordenId');
+
+            try {
+                const response = await fetch(`/api/productos/${ordenId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+    
+                console.log('Respuesta del servidor:', response);  
+    
+                if (!response.ok) {
+                    throw new Error('Error al obtener productos del vendedor');
+                }
+    
+                const producto = await response.json();
+                
+    
+                if (producto) {
+                    const productList = document.getElementById('productList');
+                    productList.innerHTML = '';
+
+                    // Creamos un elemento <li> para mostrar el producto
+                    const productItem = document.createElement('li');
+                    productItem.classList.add('product-item');
+
+                    // Creamos un elemento <div> para agrupar los detalles del producto
+                    const productDiv = document.createElement('div');
+                    productDiv.classList.add('product');
+
+                    // Agregamos los detalles del producto al div
+                    productDiv.innerHTML = `
+                    <img src="${producto.imageUrl}" alt="${producto.nombre}">
+                    <h3>${producto.nombre}</h3>
+                    <p>${producto.descripcion}</p>
+                    <p>Precio: $${producto.precio}</p>
+                    <label for="calificacion">Calificar:</label>
+                    <div class="rating" id="calificacion-${producto.id}">
+                        <input type="radio" id="star5-${producto.id}" name="rating-${producto.id}" value="5">
+                        <label for="star5-${producto.id}" title="5 estrellas">★</label>
+                        <input type="radio" id="star4-${producto.id}" name="rating-${producto.id}" value="4">
+                        <label for="star4-${producto.id}" title="4 estrellas">★</label>
+                        <input type="radio" id="star3-${producto.id}" name="rating-${producto.id}" value="3">
+                        <label for="star3-${producto.id}" title="3 estrellas">★</label>
+                        <input type="radio" id="star2-${producto.id}" name="rating-${producto.id}" value="2">
+                        <label for="star2-${producto.id}" title="2 estrellas">★</label>
+                        <input type="radio" id="star1-${producto.id}" name="rating-${producto.id}" value="1">
+                        <label for="star1-${producto.id}" title="1 estrella">★</label>
+                    </div>
+                    <textarea id="comentario-${producto.id}" placeholder="Escribe un comentario..."></textarea>
+                    <button onclick="enviarCalificacion(${producto.id})">Enviar</button>
+                `;
+
+
+                    // Agregamos el div al elemento de la lista
+                    productItem.appendChild(productDiv);
+
+                    // Agregamos el elemento de la lista a la lista de productos
+                    productList.appendChild(productItem);
+                } else {
+                    console.error('No se encontró el producto o hubo un error al procesar los datos:', producto);
+                    productList.innerHTML = '<p>No se encontró el producto.</p>';
+                }
+
+                } catch (error) {
+                    console.error('Error al cargar productos del vendedor:', error);
+                    alert('Error al cargar productos del vendedor');
+                }
+        }
+
+        async function enviarCalificacion(productoId) {
+            const calificacion = document.querySelector(`input[name="rating-${productoId}"]:checked`);
+            const comentario = document.getElementById(`comentario-${productoId}`).value;
+            const userId = sessionStorage.getItem('userId');
+
+            if (!userId) {
+                alert('No se encontró un usuario en sesión. Por favor inicia sesión.');
+                return;
+            }
+
+            if (!calificacion) {
+                alert('Por favor selecciona una calificación.');
+                return;
+            }
+
+
+            alert('Calificación enviada exitosamente.');
+
+
+            try {
+                const response = await fetch('/api/calificaciones', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ProductoID: productoId,
+                        UsuarioID: parseInt(userId), // Convertir a número si es necesario
+                        Calificacion: parseInt(calificacion.value),
+                        Comentario: comentario
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Error al enviar la calificación.');
+                }
+
+
+
+                // Opcional: limpiar la selección de estrellas y el comentario después de enviarlo
+                document.querySelector(`input[name="rating-${productoId}"]:checked`).checked = false;
+                document.getElementById(`comentario-${productoId}`).value = '';
+
+            } catch (error) {
+                console.error('Error al enviar la calificación:', error);
+                alert(error.message || 'Error desconocido al enviar la calificación.');
+            }
+        }
+
+
+        window.onload = cargarProductos;
+
+    </script>
+</body>
+</html>

@@ -14,7 +14,7 @@
             <h1>Mi carrito</h1>
         </div>
         <ul class="nav-links">
-            <li><a href="Index.html"><i class="fas fa-home"></i> Inicio</a></li>
+            <li><a href="index.html"><i class="fas fa-home"></i> Inicio</a></li>
             <li><a href="nosotros.html"><i class="fas fa-users"></i> Nosotros</a></li>
             <li><a href="cart.html"><i class="fas fa-shopping-cart"></i> Carrito</a></li>
             <li><a href="Login.html"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</a></li>
@@ -213,15 +213,15 @@
         console.log("Total calculado:", total);  // Verifica el total
 
         try {
-            // Paso 1: Obtener el userId y asignar 7 por defecto si no existe
-            const userId = sessionStorage.getItem('userId') || 7; // Usar 7 si no se encuentra el userId
+            // Paso 1: Obtener el userId y asignar 5 por defecto si no existe
+            const userId = sessionStorage.getItem('userId') || 5; // Usar 5 si no se encuentra el userId
 
             // Paso 2: Crear la orden en el servidor
             const ordenResponse = await fetch('/api/orden', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: userId, // Usar el userId (o 7 si no está en sessionStorage)
+                    userId: userId, // Usar el userId (o 5 si no está en sessionStorage)
                     total: total // Enviar el total calculado
                 })
             });

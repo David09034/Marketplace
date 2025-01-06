@@ -12,7 +12,7 @@
         <h1 class="logo">Marketplace Chugchilan</h1>
         <nav>
             <ul class="nav-links">
-                <li><a href="Index.html">Inicio</a></li>
+                <li><a href="index.html">Inicio</a></li>
                 <li><a href="cart.html">Carrito</a></li>
                 <li><a href="nosotros.html">Nosotros</a></li>
             </ul>
@@ -24,6 +24,7 @@
         <h1 id="product-name"></h1>
         <img id="product-image" src="" alt="Imagen del producto">
         <p id="product-description"></p>
+	<p>Cantidad Disponible: <span id="product-stock"></span></p>
         <p>Precio: $<span id="product-price"></span></p>
         <button class="btn" onclick="agregarAlCarrito()">Añadir al carrito</button>
     </div>
@@ -68,6 +69,7 @@
                     document.getElementById('product-name').textContent = product.nombre;
                     document.getElementById('product-description').textContent = product.descripcion;
                     document.getElementById('product-price').textContent = product.precio;
+		    document.getElementById('product-stock').textContent = product.stock;
 
                     const productImage = document.getElementById('product-image');
                     if (product.imagenUrl) {

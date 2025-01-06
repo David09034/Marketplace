@@ -26,7 +26,7 @@
     </header>
 
     <nav>
-        <a href="Index.html">Inicio</a>
+        <a href="index.html">Inicio</a>
         <a href="#" class="tab-link active" data-tab="compras">Mis Compras</a>
         <!--<a href="#" class="tab-link" data-tab="perfil">Mi Perfil</a>-->
     </nav>
@@ -39,10 +39,10 @@
                 <thead>
                     <tr>
                         <th>ID de Compra</th>
-                        <th>Pagar</th>
                         <th>Estado</th>
                         <th>Fecha</th>
                         <th>Productos</th>
+			<th>Calificar</th>
                     </tr>
                 </thead>
                 <tbody id="purchaseList">
@@ -139,13 +139,6 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${ordenId}</td>
-                        <td>
-                            <button 
-                                class="pay-btn" 
-                                data-orden-id="${ordenId}" 
-                                ${orden.Estado === 'Pagada' ? 'disabled' : ''}>
-                                ${orden.Estado === 'Pagada' ? 'Pagada' : 'Pagar'}
-                            </button>
                         </td>
                         <td>${orden.Estado}</td>
                         <td>${fechaFormateada}</td>
@@ -155,6 +148,12 @@
                                 Ver Información de los Vendedores
                             </button>
                             <div class="vendedor-info" id="vendedor-${ordenId}" style="display: none;"></div>
+                        </td>
+			<td>
+                            <button class="calificar-btn" data-orden-id="${ordenId}" ${orden.Estado !== 'Completado' ? 'disabled' : ''}
+                                onclick="window.location.href='calificar.html?ordenId=${ordenId}'">
+                                Calificar
+                            </button>
                         </td>
                     `;
                     purchaseList.appendChild(row);
