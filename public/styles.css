@@ -241,6 +241,32 @@ h1, h2, h3 {
     color: #555;
 }
 
+/* Estilo del contenedor de los botones */
+.button-container {
+    display: flex; /* Activa el modelo flexbox */
+    justify-content: center; /* Centra horizontalmente */
+    align-items: center; /* Centra verticalmente dentro del contenedor */
+    gap: 30px; /* Espacio entre las imágenes */
+    padding: 20px; /* Espacio interno adicional */
+    height: 100%; /* Ajusta la altura al contenedor padre (puedes ajustarlo según tu estructura) */
+}
+  
+  /* Estilo para las imágenes de los enlaces */
+.link-image {
+    width: 150px; /* Aumenta el tamaño de las imágenes */
+    height: auto; /* Mantén la proporción de las imágenes */
+    border-radius: 10px; /* Bordes ligeramente redondeados */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Efecto al pasar el cursor */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra alrededor de la imagen */
+}
+  
+  /* Efecto al pasar el cursor sobre las imágenes */
+.link-image:hover {
+    transform: scale(1.1); /* Agranda un poco la imagen */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Sombra más fuerte */
+}
+  
+
 /* Pie de página */
 .footer {
     background-color: #1e2a47;
