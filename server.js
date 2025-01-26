@@ -422,71 +422,112 @@ app.get('/api/usuarios/:userId', async (req, res) => {
     }
 });
 
+
+
 // Endpoint para obtener las ventas realizadas por un productor
 app.get('/ventas/productor/:usuarioId', async (req, res) => {
     const usuarioId = req.params.usuarioId;
 
     try {
-        // Paso 1: Obtener el ProductorID asociado al UsuarioID
-        const [productorRows] = await pool.execute(
-            'SELECT ProductorID FROM Productores WHERE UsuarioID = ?',
-            [usuarioId]
-        );
-
-        if (productorRows.length === 0) {
-            return res.status(404).json({ message: 'Productor no encontrado' });
-        }
-
-        const productorId = productorRows[0].ProductorID;
-
-        // Paso 2: Obtener las órdenes del Productor
-        const [ordenesRows] = await pool.execute(
-            `SELECT 
-                o.OrdenID, o.FechaOrden, o.Total, o.Estado
-            FROM Ordenes o
-            JOIN OrdenDetalle od ON o.OrdenID = od.OrdenID
-            JOIN Productos p ON od.ProductoID = p.ProductoID
-            WHERE p.ProductorID = ? 
-            ORDER BY o.FechaOrden DESC`,
-            [productorId]
-        );
-
-        if (ordenesRows.length === 0) {
-            return res.status(404).json({ message: 'No hay ventas registradas para este productor' });
-        }
-
-        // Paso 3: Obtener detalles de los productos vendidos
-        const ventas = [];
-        
-        for (const orden of ordenesRows) {
-            const [productosRows] = await pool.execute(
-                `SELECT 
-                    p.Nombre AS Producto, od.Cantidad, od.PrecioUnitario AS Precio, od.Subtotal
-                FROM OrdenDetalle od
+        // Verificar si el userId es 44, para traer todas las ventas
+        if (usuarioId === '44') {
+            // Obtener todas las ventas de todos los productores
+            const [ordenesRows] = await pool.execute(
+                `SELECT
+                    o.OrdenID, o.FechaOrden, o.Total, o.Estado, p.ProductorID
+                FROM Ordenes o
+                JOIN OrdenDetalle od ON o.OrdenID = od.OrdenID
                 JOIN Productos p ON od.ProductoID = p.ProductoID
-                WHERE od.OrdenID = ?
-                AND p.ProductorID = ?`,
-                [orden.OrdenID, productorId] // Combina los parámetros en un único array
+                ORDER BY o.FechaOrden DESC`
             );
-        
-        
+	      if (ordenesRows.length === 0) {
+                return res.status(404).json({ message: 'No hay ventas registradas' });
+            }
 
-            ventas.push({
-                OrdenID: orden.OrdenID,
-                FechaOrden: orden.FechaOrden,
-                Total: orden.Total,
-                Estado: orden.Estado,
-                Productos: productosRows,
-            });
+            // Paso 3: Obtener detalles de los productos vendidos
+            const ventas = [];
+
+            for (const orden of ordenesRows) {
+                const [productosRows] = await pool.execute(
+                    `SELECT
+                        p.Nombre AS Producto, od.Cantidad, od.PrecioUnitario AS Precio, od.Subtotal
+                    FROM OrdenDetalle od
+                    JOIN Productos p ON od.ProductoID = p.ProductoID
+                    WHERE od.OrdenID = ? AND p.ProductorID = ?`,
+                    [orden.OrdenID, orden.ProductorID]  // Para obtener los productos vendidos por cada productor
+                );
+		 ventas.push({
+                    OrdenID: orden.OrdenID,
+                    FechaOrden: orden.FechaOrden,
+                    Total: orden.Total,
+                    Estado: orden.Estado,
+                    Productos: productosRows,
+                });
+            }
+
+            return res.json(ventas);
+        } else {
+            // Paso 1: Obtener el ProductorID asociado al UsuarioID
+            const [productorRows] = await pool.execute(
+                'SELECT ProductorID FROM Productores WHERE UsuarioID = ?',
+                [usuarioId]
+            );
+
+            if (productorRows.length === 0) {
+                return res.status(404).json({ message: 'Productor no encontrado' });
+            }
+	     const productorId = productorRows[0].ProductorID;
+
+            // Paso 2: Obtener las órdenes del Productor
+            const [ordenesRows] = await pool.execute(
+                `SELECT
+                    o.OrdenID, o.FechaOrden, o.Total, o.Estado
+                FROM Ordenes o
+                JOIN OrdenDetalle od ON o.OrdenID = od.OrdenID
+                JOIN Productos p ON od.ProductoID = p.ProductoID
+                WHERE p.ProductorID = ?
+                ORDER BY o.FechaOrden DESC`,
+                [productorId]
+            );
+
+            if (ordenesRows.length === 0) {
+                return res.status(404).json({ message: 'No hay ventas registradas para este productor' });
+            }
+
+	       // Paso 3: Obtener detalles de los productos vendidos
+            const ventas = [];
+
+            for (const orden of ordenesRows) {
+                const [productosRows] = await pool.execute(
+                    `SELECT
+                        p.Nombre AS Producto, od.Cantidad, od.PrecioUnitario AS Precio, od.Subtotal
+                    FROM OrdenDetalle od
+                    JOIN Productos p ON od.ProductoID = p.ProductoID
+                    WHERE od.OrdenID = ?
+                    AND p.ProductorID = ?`,
+                    [orden.OrdenID, productorId] // Combina los parámetros en un único array
+                );
+
+                ventas.push({
+                    OrdenID: orden.OrdenID,
+                    FechaOrden: orden.FechaOrden,
+                    Total: orden.Total,
+                    Estado: orden.Estado,
+                    Productos: productosRows,
+                });
+            }
+
+	    
+            // Devolver los resultados en formato JSON
+            return res.json(ventas);
         }
 
-        // Devolver los resultados en formato JSON
-        res.json(ventas);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error en el servidor' });
     }
 });
+
 
 //Actualizar estado compra
 app.post('/ventas/actualizarEstado', (req, res) => {
@@ -556,20 +597,39 @@ app.post('/api/productos', upload.single('Imagen'), async (req, res) => {
     }
 });
 
+//Get productos para pantalla mis productos del vendedor
 app.get('/productos/:userId', async (req, res) => {
-    const userId = req.params.userId;
+	const userId = req.params.userId;
 
-    try {
-        const [productorRows] = await pool.query('SELECT ProductorID FROM Productores WHERE UsuarioID = ?', [userId]);
-        const productorId = productorRows[0]?.ProductorID;
 
-        const [productoRows] = await pool.query('SELECT * FROM Productos WHERE ProductorID = ? AND Stock > 0', [productorId]);
+   try {
+       // Si el userId es 44, traemos todos los productos
+        if (userId === '44') {
+            // Traemos todos los productos y el nombre del vendedor
+            const [productosRows] = await pool.query('SELECT p.Nombre, p.Descripcion, p.Precio, p.Stock,p.Categoria, pr.NombreEmpresa AS VendedorNombre FROM Productos p JOIN Productores pr ON p.ProductorID = pr.ProductorID');
 
-        res.json(productoRows);
-    } catch {
-        res.end(); // Sin manejar errores
+            res.json(productosRows);
+        } else {
+            // Si no es 44, traemos los productos del productor correspondiente
+            const [productorRows] = await pool.query('SELECT ProductorID FROM Productores WHERE UsuarioID = ?', [userId]);
+
+            // Si no encontramos el productor, respondemos con un error
+            if (productorRows.length === 0) {
+                return res.status(404).json({ message: 'Productor no encontrado' });
+            }
+
+            const productorId = productorRows[0]?.ProductorID;
+	      // Traemos los productos del productor con stock > 0
+            const [productoRows] = await pool.query('SELECT * FROM Productos WHERE ProductorID = ? AND Stock > 0', [productorId]);
+
+            res.json(productoRows);
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).end(); // En caso de error en la consulta
     }
 });
+
 
 
 // Ruta para obtener productos de un productor por su ProductorID

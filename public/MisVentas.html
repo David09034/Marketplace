@@ -20,7 +20,13 @@
 
     <div class="container">
         <div class="panel active" id="ventas">
-            <h2>Mis Ventas</h2>
+            
+	 <!--  mensaje para administradores -->
+            <div id="adminMessage" style="display: none; padding: 10px; background-color: #4CAF50; color: white; margin-bo">
+                <p><strong>¡Eres administrador!</strong> Tienes acceso completo a todos los productos y ventas.</p>
+            </div>	
+
+	<h2>Mis Ventas</h2>
             <table class="table">
                 <thead>
                     <tr>
@@ -53,6 +59,14 @@
                 window.location.href = 'login.html';
                 return;
             }
+	 // Validar si el userId es 44 y mostrar mensaje de administrador
+             if (userId === '44') {
+                const adminMessage = document.getElementById('adminMessage');
+                adminMessage.style.display = 'block'; // Mostrar mensaje de administrador
+            }
+
+		
+
             try {
                 const response = await fetch(`/ventas/productor/${userId}`, {
                     method: 'GET',

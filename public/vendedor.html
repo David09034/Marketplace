@@ -20,6 +20,11 @@
     </nav>
 
     <div class="container">
+
+	 <!-- Mensaje de administrador (oculto por defecto) -->
+         <div id="adminMessage" style="display: none; background-color: lightgreen; padding: 10px; margin-bottom: 20px;">
+            <p><strong>¡Eres administrador!</strong> Tienes acceso completo a todos los productos y ventas.</p>
+        </div>
         <!-- Panel para administrar productos -->
         <div class="panel active" id="productos">
             <h2>Administrar Productos</h2>
@@ -139,7 +144,7 @@
     
             if (!userId) {
                 alert('Por favor, inicia sesión.');
-                window.location.href = 'login.html';
+                window.location.href = 'Login.html';
                 return;
             }
     
@@ -160,10 +165,28 @@
     
                 const productos = await response.json();
     
+		 const userIdEspecifico = '44';
+
+                // Si el userId es específico, agregamos una columna
+                const agregarColumnaExtra = userId === userIdEspecifico;
+
+                if (userId === userIdEspecifico) {
+                    
+                    document.getElementById('adminMessage').style.display = 'block';
+
+                }
+
                 if (productos && productos.length > 0) {
                     const productList = document.getElementById('productList');
                     productList.innerHTML = ''; // Limpiar la lista de productos actual
-    
+		
+		    if (agregarColumnaExtra) {
+                    const headerRow = document.querySelector('thead tr');
+                    const newHeaderCell = document.createElement('th');
+                    newHeaderCell.textContent = 'Vendedor'; // El título de la columna
+                    headerRow.appendChild(newHeaderCell);
+                    }	
+			    
                     productos.forEach(producto => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
@@ -172,11 +195,23 @@
                             <td>${producto.Descripcion}</td>
                             <td>${producto.Stock}</td>
                             <td>${producto.Categoria}</td>
+                            `;
+
+                        // Si es el userId 44, agregar el nombre del vendedor
+
+                        row.innerHTML += `
                             <td>
                                 <button onclick="window.location.href='editar-producto.html?ProductoID=${producto.ProductoID}'">Editar</button>
                                 <button onclick="eliminarProducto(${producto.ProductoID})">Eliminar</button>
                             </td>
                         `;
+
+                        if (agregarColumnaExtra) {
+                            const vendedorCell = document.createElement('td');
+                            vendedorCell.textContent = producto.VendedorNombre;
+                            row.appendChild(vendedorCell);
+                        }
+			
                         productList.appendChild(row);
                     });
                 } else {
@@ -190,6 +225,7 @@
 
         async function insertarProducto(event) {
             event.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+
 
             const form = document.getElementById('productForm');
             const formData = new FormData(form);
