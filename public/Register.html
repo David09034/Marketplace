@@ -6,6 +6,17 @@
     <title>Registro</title>
     <link rel="stylesheet" href="RegisterForm.css">
     <script>
+
+	window.onload = function() {
+            // Verificar si hay un mensaje de error en la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            
+            if (error) {
+                alert(error);  // Mostrar el mensaje como un alert
+            }
+        };
+	
         // Función para mostrar campos adicionales según el rol seleccionado
         function mostrarCamposAdicionales() {
             const rol = document.querySelector("select[name='rol']").value;
@@ -76,6 +87,11 @@
 
             <button type="submit">Registrarme</button>
         </form>
+
+	 <!-- Información para registrarse como vendedor -->
+        <div class="info-vendedor">
+            <p>Para registrarte como <strong>vendedor</strong>, por favor envía un correo a <a href="mailto:chugchilanmarketplace@gmail.com">chugchilanmarketplace@gmail.com</a>.</p>
+        </div>
     </div>
 </body>
 </html>

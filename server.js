@@ -2,22 +2,24 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const mysql = require('mysql2/promise');  // Importa mysql2 para promesas
+const sharp = require('sharp');
+const compression = require('compression');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const app = express();
-const PORT = 3020;
-const mod_var = 'M';
+const PORT = 3030;
+const mod_var = 'P';
 
-const poolConfig = mod_var === 'D' ? {
-    host: 'localhost',
-    user: 'root', 
-    password: '1234',
+const poolConfig = mod_var === 'P' ? {
+    host: '46.202.177.158',
+    user: 'hostinger',
+    password: 'Admin1@hostinger',
     database: 'tienda',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
 } : {
-    host: '192.168.1.23',
+    host: '192.168.1.16',
     user: 'admin1',
     password: 'admin1',
     database: 'tienda',
@@ -26,6 +28,18 @@ const poolConfig = mod_var === 'D' ? {
     queueLimit: 0
 };
 
+
+app.use(compression());
+
+const cors = require('cors');
+
+// Habilitar CORS para tu frontend
+const corsOptions = {
+    origin: 'http://tiendaschugchilan.xyz', // Permite solicitudes solo desde este dominio
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type'],
+};
+app.use(cors(corsOptions));
 // Crear el pool con la configuración correspondiente
 const pool = mysql.createPool(poolConfig);
 
@@ -35,6 +49,7 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false }  
 }));
+
 
 // Configuración de multer para el almacenamiento de imágenes en la memoria (no en disco)
 const storage = multer.memoryStorage();  // Usamos memoria en lugar de disco
@@ -46,6 +61,17 @@ app.use(express.urlencoded({ extended: true }));
 // Servir archivos estáticos desde la carpeta "public"
 app.use(express.static(path.join(__dirname, 'public')));
 
+//Configuracion cache
+app.use('/static', (req, res, next) => {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // Cache a largo plazo para imágenes
+    next();
+});
+app.use((req, res, next) => {
+    if (!req.path.startsWith('/static')) {
+        res.setHeader('Cache-Control', 'no-store'); // Sin caché para otros archivos
+    }
+    next();
+});
 // Ruta principal para la página de productos
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'Index.html'));
@@ -54,13 +80,92 @@ app.get('/', (req, res) => {
 // Ruta para obtener productos desde la base de datos
 app.get('/api/productos', async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM Productos');
+        const [rows] = await pool.query('SELECT ProductoID, Nombre, Precio  FROM Productos where stock > 0');
         res.json(rows);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Error al obtener productos' });
     }
 });
+
+// Ruta para obtener las calificaciones de un producto
+app.get('/api/calificaciones/:productoId', async (req, res) => {
+    const productoId = req.params.productoId;
+
+    try {
+        // Obtener todas las calificaciones del producto
+        const [rows] = await pool.query('SELECT c.Calificacion, c.Comentario, u.Nombre AS UsuarioNombre FROM Calificaciones c JOIN Usuarios u ON c.UsuarioID = u.UsuarioID WHERE c.ProductoID = ?', [productoId]);
+
+        // Verificar si se encontraron calificaciones
+        if (rows.length > 0) {
+            res.json(rows);  // Enviar las calificaciones encontradas
+        } else {
+            res.status(200).json([]);  // Enviar array vacío si no hay calificaciones
+        }
+    } catch (error) {
+        console.error('Error al obtener las calificaciones:', error);
+        res.status(500).json({ error: 'Error al obtener las calificaciones' });
+    }
+});
+
+app.post('/api/calificaciones', (req, res) => {
+    const { ProductoID, UsuarioID, Calificacion, Comentario } = req.body;
+
+    if (!ProductoID || !UsuarioID || !Calificacion) {
+        return res.status(400).json({ message: 'ProductoID, UsuarioID y Calificacion son obligatorios.' });
+    }
+
+    // Insertar la calificación directamente en la base de datos
+    const sql = 'INSERT INTO Calificaciones (ProductoID, UsuarioID, Calificacion, Comentario) VALUES (?, ?, ?, ?)';
+    const values = [ProductoID, UsuarioID, Calificacion, Comentario || null];
+
+    pool.query(sql, values, (err, result) => {
+        if (err) {
+            console.error('Error al guardar la calificación:', err);
+            return res.status(500).json({ message: 'Error al guardar la calificación.' });
+        }
+
+        res.status(201).json({ message: 'Calificación guardada exitosamente.', CalificacionID: result.insertId });
+    });
+});
+
+app.get('/api/productos/:orderId', async (req, res) => {
+    const orderId = req.params.orderId;
+  
+    try {
+
+      const [productorRows] = await pool.query('SELECT ProductoID FROM OrdenDetalle WHERE OrdenID = ?', [orderId]);
+  
+      if (productorRows.length === 0) {
+        return res.status(404).json({ error: 'No se encontró producto para este pedido' }); // More specific error message
+      }
+  
+      const productoId = productorRows[0].ProductoID;
+  
+   
+      const [productoRows] = await pool.query('SELECT * FROM Productos WHERE ProductoID = ?', [productoId]);
+  
+      if (productoRows.length > 0) {
+        const producto = productoRows[0]; 
+        
+        res.json({
+          id: producto.ProductoID, 
+          nombre: producto.Nombre,
+          descripcion: producto.Descripcion,
+          precio: producto.Precio,
+          stock: producto.Stock,
+          categoria: producto.Categoria,
+          imageUrl: `/api/producto/imagen/${productoId}`, 
+          productorId: producto.ProductorID,
+        });
+      } else {
+        res.status(404).json({ error: 'No se encontró producto para este pedido' }); 
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Error al obtener productos' });
+    }
+  });
 
 // Ruta para obtener un producto por ID
 app.get('/producto/:id', async (req, res) => {
@@ -97,7 +202,7 @@ app.delete('/delete/producto/:productoID', async (req, res) => {
     const { productoID } = req.params;  // Obtener el productoID desde los parámetros de la URL
 
     // Consulta SQL para poner el stock a 0 (eliminar lógicamente el producto)
-    const query = 'UPDATE productos SET stock = 0 WHERE productoID = ?';
+    const query = 'UPDATE Productos SET stock = 0 WHERE productoID = ?';
 
     try {
         // Ejecutar la consulta SQL
@@ -109,7 +214,7 @@ app.delete('/delete/producto/:productoID', async (req, res) => {
         }
 
         // Respuesta exitosa
-        res.json({ message: 'Producto eliminado (stock actualizado a 0) exitosamente' });
+        res.json({ message: 'Producto eliminado exitosamente' });
     } catch (error) {
         console.error('Error al actualizar el stock:', error);
         res.status(500).json({ error: 'Hubo un problema al eliminar el producto' });
@@ -120,23 +225,50 @@ app.get('/api/carrito', (req, res) => {
     res.json(req.session.carrito || []); 
 });
 
-app.put('/update/producto/:id', async (req, res) => {
+
+app.put('/update/producto/:id', upload.single('imagen'), async (req, res) => {
     const productId = req.params.id;
     const { nombre, descripcion, precio, stock, categoria } = req.body;
 
+    // Obtener la imagen si se ha subido y comprimirla
+    let imagen = null;
 
+    if (req.file) {
+        try {
+            imagen = await sharp(req.file.buffer)
+                .resize(600, 600, { fit: 'inside' }) // Cambia el tamaño si es necesario
+                .jpeg({ quality: 80 }) // Ajusta la calidad
+                .toBuffer(); // Convertir la imagen a un buffer comprimido
+        } catch (error) {
+            console.error("Error al comprimir la imagen:", error);
+            return res.status(500).json({ error: 'Error al comprimir la imagen' });
+        }
+    }
+
+    // Comprobar campos requeridos
     if (!nombre || !descripcion || !precio || !stock || !categoria) {
-        return res.status(400).json({ error: 'Todos los campos son necesarios' });
+        return res.status(400).json({ error: 'Todos los campos son necesarios excepto la imagen' });
     }
 
     try {
-        const query = `
+        // Construir consulta de forma dinámica
+        let query = `
             UPDATE Productos
             SET Nombre = ?, Descripcion = ?, Precio = ?, Stock = ?, Categoria = ?
-            WHERE ProductoID = ?
         `;
+        const queryParams = [nombre, descripcion, precio, stock, categoria];
 
-        const [result] = await pool.query(query, [nombre, descripcion, precio, stock, categoria, productId]);
+        // Agregar actualización de imagen si está presente
+        if (imagen) {
+            query += `, Imagen = ?`;
+            queryParams.push(imagen);
+        }
+
+        query += ` WHERE ProductoID = ?`;
+        queryParams.push(productId);
+
+        // Ejecutar la consulta
+        const [result] = await pool.query(query, queryParams);
 
         if (result.affectedRows > 0) {
             res.json({ message: 'Producto actualizado exitosamente' });
@@ -144,12 +276,10 @@ app.put('/update/producto/:id', async (req, res) => {
             res.status(400).json({ error: 'No se pudo actualizar el producto' });
         }
     } catch (error) {
-        console.error(error);
+        console.error("Error al actualizar el producto:", error);
         res.status(500).json({ error: 'Error al actualizar el producto' });
     }
 });
-
-
 
 
 // Ruta para agregar productos al carrito
@@ -183,12 +313,6 @@ app.post('/api/registro', express.json(), async (req, res) => {
     const { nombre, email, contraseña, telefono, rol, empresa, ubicacion, direccion } = req.body;
 
     try {
-        // Validar el formato del correo electrónico
-        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({ error: 'Formato de correo electrónico inválido' });
-        }
-
         // Hashear la contraseña
         const hashedPassword = await bcrypt.hash(contraseña, 10);
 
@@ -207,17 +331,20 @@ app.post('/api/registro', express.json(), async (req, res) => {
         await pool.query(query, values);
 
         const [rows] = await pool.query('SELECT @status AS status');
-        if (rows[0].status === 0) {
-            return res.status(400).json({ error: 'El correo electrónico ya está registrado' });
+        const status = rows[0].status;
+
+	if (status === 0) {
+            return res.redirect(`/Register.html?error=El correo electrónico ya está registrado`);
+        } else if (status === 3) {
+            return res.redirect(`/Register.html?error=No puedes registrarte como vendedor`);
         }
 
         res.redirect('/Login.html');
     } catch (error) {
         console.error("Error al registrar el usuario:", error);
-        res.status(500).json({ error: 'Error al registrar el usuario' });
+        res.redirect(`/Register.html?error=Error al registrar el usuario`);
     }
 });
-
 
 
 
@@ -248,11 +375,13 @@ app.post('/api/login', express.urlencoded({ extended: true }), async (req, res) 
             const match = await bcrypt.compare(contraseña, hashedPassword);
 
             if (match) {
+		console.log(`Usuario inició sesión: { email: ${email}, userId: ${userId}, rol: ${userRole} }`);
+
                 // Si las contraseñas coinciden, responder con los datos del usuario
                 res.json({
                     userId: userId,
                     userRole: userRole,
-                    message: 'Inicio de sesión exitoso'
+                    message: 'Inicio de sesión exitoso',
                 });
             } else {
                 // Si no coinciden, devolver error
@@ -393,19 +522,29 @@ app.post('/ventas/actualizarEstado', (req, res) => {
 // API para insertar un producto (con imagen en memoria)
 app.post('/api/productos', upload.single('Imagen'), async (req, res) => {
     const { nombre, descripcion, precio, Stock, categoria } = req.body;
-    const imagen = req.file ? req.file.buffer : null;  // Usamos el buffer de la imagen en la memoria
+    let imagen = req.file ? req.file.buffer : null;  // Usamos el buffer de la imagen en la memoria
 
     // Verificación de los datos recibidos
-    console.log('Datos recibidos:', { nombre, descripcion, precio, Stock, categoria });
+    if (!nombre || !descripcion || !precio || !Stock || !categoria) {
+        return res.status(400).json({ error: 'Faltan datos en la solicitud' });
+    }
 
-    // Suponiendo que el ID del productor (userId) lo tienes disponible en la sesión o en el cuerpo de la solicitud
-    const productorID = req.body.productorID; // Asegúrate de que este valor esté siendo enviado por el cliente
+    const productorID = req.body.productorID;
 
     if (!productorID) {
         return res.status(400).json({ error: 'ID de productor no proporcionado' });
     }
 
     try {
+        // Si se proporciona una imagen, procesarla (redimensionar y comprimir)
+        if (imagen) {
+            // Redimensionar la imagen a un máximo de 800x800 píxeles y comprimirla a formato JPEG con calidad 80
+            imagen = await sharp(imagen)
+                .resize(600, 600, { fit: 'inside' }) // Redimensiona respetando la relación de aspecto
+                .jpeg({ quality: 80 }) // Comprime a formato JPEG con calidad del 80%
+                .toBuffer(); // Convierte la imagen procesada en un buffer
+        }
+
         // Llamar al procedimiento almacenado para insertar el producto
         const query = 'CALL InsertarProducto(?, ?, ?, ?, ?, ?, ?)';
         await pool.query(query, [productorID, nombre, descripcion, precio, Stock, categoria, imagen]);
@@ -417,35 +556,21 @@ app.post('/api/productos', upload.single('Imagen'), async (req, res) => {
     }
 });
 
-
 app.get('/productos/:userId', async (req, res) => {
     const userId = req.params.userId;
 
-
     try {
-        // Obtener el ProductorID
         const [productorRows] = await pool.query('SELECT ProductorID FROM Productores WHERE UsuarioID = ?', [userId]);
+        const productorId = productorRows[0]?.ProductorID;
 
-        if (productorRows.length === 0) {
-            return res.status(404).json({ error: 'No se encontró productor para este usuario' });
-        }
+        const [productoRows] = await pool.query('SELECT * FROM Productos WHERE ProductorID = ? AND Stock > 0', [productorId]);
 
-        const productorId = productorRows[0].ProductorID;
-
-
-        // Ahora obtenemos los productos usando el ProductorID
-        const [productoRows] = await pool.query('SELECT * FROM Productos WHERE ProductorID = ?', [productorId]);
-
-        if (productoRows.length > 0) {
-            res.json(productoRows);  // Enviar productos encontrados
-        } else {
-            res.status(404).json({ error: 'No se encontraron productos para este productor' });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error al obtener productos' });
+        res.json(productoRows);
+    } catch {
+        res.end(); // Sin manejar errores
     }
 });
+
 
 // Ruta para obtener productos de un productor por su ProductorID
 app.get('/api/productos/productor/:productorId', async (req, res) => {
@@ -454,7 +579,7 @@ app.get('/api/productos/productor/:productorId', async (req, res) => {
     try {
         // Consulta para obtener los productos asociados al ProductorID
         const [productoRows] = await pool.query(
-            'SELECT ProductoID, Nombre, Descripcion, Precio FROM Productos WHERE ProductorID = ?', 
+            'SELECT ProductoID, Nombre, Descripcion, Precio FROM Productos WHERE ProductorID = ? AND Stock > 0', 
             [productorId]
         );
 
@@ -478,7 +603,7 @@ app.get('/api/producto/imagen/:id', async (req, res) => {
     const productId = req.params.id;
 
     try {
-        const [rows] = await pool.query('SELECT Imagen FROM Productos WHERE ProductoID = ?', [productId]);
+        const [rows] = await pool.query('SELECT Imagen FROM Productos WHERE ProductoID = ? limit 10', [productId]);
 
         if (rows.length > 0) {
             const imagenData = rows[0].Imagen;
@@ -488,7 +613,7 @@ app.get('/api/producto/imagen/:id', async (req, res) => {
             }
 
             res.set('Content-Type', 'image/jpg');  // O 'image/png' si la imagen es PNG
-            res.send(imagenData);
+            res.send(imagenData);  // Aquí estás enviando los datos de la imagen directamente
         } else {
             res.status(404).json({ error: 'Producto no encontrado' });
         }
@@ -674,7 +799,7 @@ app.post('/api/entrega', async (req, res) => {
 // Ruta para obtener la información del vendedor por ProductoID
 app.get('/api/vendedores/info/:ordenId', async (req, res) => {
     const { ordenId } = req.params;
-
+	console.log('OrdenID recibido:', ordenId);
     try {
         const [rows] = await pool.query(`
            SELECT DISTINCT 
@@ -695,6 +820,7 @@ app.get('/api/vendedores/info/:ordenId', async (req, res) => {
         `, [ordenId]);
 
         res.json(rows);
+	console.log('Resultado de la consulta:', rows);
     } catch (error) {
         console.error('Error al obtener información de los vendedores:', error);
         res.status(500).json({ error: 'Error al obtener información de los vendedores' });
@@ -733,9 +859,8 @@ app.get('/api/compradores/info/:ordenId', async (req, res) => {
 
 
 
-// Iniciar el servidor
-app.listen(PORT, () => {
-    console.log(`Servidor iniciado en http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Servidor iniciado en http://0.0.0.0:${PORT}`);
 });
 
 
