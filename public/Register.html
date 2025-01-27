@@ -6,8 +6,7 @@
     <title>Registro</title>
     <link rel="stylesheet" href="RegisterForm.css">
     <script>
-
-	window.onload = function() {
+        window.onload = function() {
             // Verificar si hay un mensaje de error en la URL
             const urlParams = new URLSearchParams(window.location.search);
             const error = urlParams.get('error');
@@ -38,8 +37,13 @@
 </head>
 <body>
     <div class="wrapper">
+        
+        
         <form action="/api/registro" method="post">
             <h1>Registro</h1>
+            <div class="intro-message">
+                <p>¡Bienvenido! Completa el siguiente formulario para crear una nueva cuenta.</p>
+            </div><br>
             <div class="input-box">
                 <input type="text" name="nombre" placeholder="Nombre" required>
                 <span class="icon">👤</span>
@@ -49,7 +53,7 @@
                 <span class="icon">🔒</span>
             </div>
             <div class="input-box">
-                <input type="email" name="email" placeholder="Correo" required>
+                <input type="email" name="email" placeholder="Correo Electrónico" required>
                 <span class="icon">✉️</span>
             </div>
             <div class="input-box">
@@ -88,9 +92,9 @@
             <button type="submit">Registrarme</button>
         </form>
 
-	 <!-- Información para registrarse como vendedor -->
+        <!-- Información adicional sobre el registro de vendedores -->
         <div class="info-vendedor">
-            <p>Para registrarte como <strong>vendedor</strong>, por favor envía un correo a <a href="mailto:chugchilanmarketplace@gmail.com">chugchilanmarketplace@gmail.com</a>.</p>
+            <p>Si deseas registrarte como <strong>vendedor</strong>, por favor contacta con nosotros enviando un correo a <a href="mailto:chugchilanmarketplace@gmail.com">chugchilanmarketplace@gmail.com</a>.</p>
         </div>
     </div>
 </body>
