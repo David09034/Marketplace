@@ -28,6 +28,19 @@ h1, h2, h3 {
     font-weight: 700;
 }
 
+/* Social media icons */
+.social-media a {
+    margin: 0 10px;
+    color: #fff;
+    font-size: 20px;
+    transition: color 0.3s ease;
+    align-items: center;
+}
+
+.social-media a:hover {
+    color: #f9a825; /* Cambia a amarillo al pasar el mouse */
+}
+
 .nav-links {
     list-style: none;
     display: flex;
@@ -254,7 +267,7 @@ h1, h2, h3 {
   /* Estilo para las imágenes de los enlaces */
 .link-image {
     width: 150px; /* Aumenta el tamaño de las imágenes */
-    height: auto; /* Mantén la proporción de las imágenes */
+    height: 90px; /* Mantén la proporción de las imágenes */
     border-radius: 10px; /* Bordes ligeramente redondeados */
     transition: transform 0.3s ease, box-shadow 0.3s ease; /* Efecto al pasar el cursor */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra alrededor de la imagen */
