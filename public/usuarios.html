@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendedores</title>
+    <link rel="stylesheet" href="vendedor-style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Panel de Control del Vendedor</h1>
+    </header>
+
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="vendedor.html" class="tab-link active" data-tab="productos">Administrar Productos</a>
+        <a href="MisVentas.html" class="tab-link" data-tab="ventas">Mis Ventas</a>
+        
+        <!-- Nueva pestaña para ver los vendedores (oculta por defecto) -->
+        <a href="usuarios.html" class="tab-link" data-tab="vendedores" id="vendedoresTab" style="display: none;">Vendedores</a>
+    </nav>
+
+    <div class="container">
+        <!-- Panel para ver vendedores -->
+        <div class="panel" id="vendedores" style="display: none;">
+            <h2>Clientes y Vendedores Registrados</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Teléfono</th>
+                        <th>Rol</th>
+                    </tr>
+                </thead>
+                <tbody id="vendedoresList">
+                    <!-- Aquí se listarán los vendedores y clientes -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer>
+        <p>Panel de Vendedor © 2024</p>
+    </footer>
+
+    <script>
+        // Función para ajustar las pestañas y mostrar la de "Vendedores" solo si userId es 44
+        function ajustarTabs() {
+            const userId = sessionStorage.getItem('userId');
+            const userIdEspecifico = '44';  // ID específico que cambia los nombres de los tabs
+
+            if (userId === userIdEspecifico) {
+                // Mostrar la pestaña de Vendedores
+                document.getElementById('vendedoresTab').style.display = 'inline-block';
+            }
+        }
+
+      // Función para cargar los vendedores
+async function cargarVendedores() {
+    const userId = sessionStorage.getItem('userId');
+    
+    if (userId !== '44') {
+        return; // Solo cargar los vendedores si el userId es 44
+    }
+
+    try {
+        const response = await fetch('/api/usuarios');
+        
+        if (!response.ok) {
+            throw new Error('Error al obtener los usuarios');
+        }
+
+        const usuarios = await response.json();
+        
+        // Asegurarse de que la respuesta sea un array
+        if (!Array.isArray(usuarios)) {
+            throw new Error('La respuesta no es un array');
+        }
+        
+        // Mostrar la pestaña de vendedores
+        document.getElementById('vendedores').style.display = 'block';
+        
+        const vendedoresList = document.getElementById('vendedoresList');
+        vendedoresList.innerHTML = ''; // Limpiar la lista de usuarios actual
+        
+        // Verificar si hay usuarios y mostrarlos
+        if (usuarios.length > 0) {
+            usuarios.forEach(usuario => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${usuario.UsuarioID}</td>
+                    <td>${usuario.Nombre}</td>
+                    <td>${usuario.Email}</td>
+                    <td>${usuario.Telefono}</td>
+                    <td>${usuario.rol}</td>
+                `;
+                vendedoresList.appendChild(row);
+            });
+        } else {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td colspan="5">No se encontraron usuarios registrados.</td>
+            `;
+            vendedoresList.appendChild(row);
+        }
+
+    } catch (error) {
+        console.error('Error al cargar los vendedores:', error);
+        alert('Error al cargar los usuarios: ' + error.message);
+    }
+}
+
+
+        // Llamar las funciones al cargar la página
+        window.onload = function() {
+            ajustarTabs();  // Ajustar las pestañas
+            cargarVendedores();  // Cargar los vendedores si es el usuario correcto
+        };
+    </script>
+
+</body>
+</html>

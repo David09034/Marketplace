@@ -77,6 +77,20 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'Index.html'));
 });
 
+
+const { enviarCorreo } = require('./public/mailer'); 
+//Enviar correos de confirmacion
+app.post('/api/enviar-correo', async (req, res) => {
+    try {
+        await enviarCorreo(req.body);
+        res.json({ message: 'Correo enviado correctamente' });
+    } catch (error) {
+        console.error('Error al enviar correo:', error);
+        res.status(500).json({ message: 'Error al enviar el correo' });
+    }
+});
+
+
 // Ruta para obtener productos desde la base de datos
 app.get('/api/productos', async (req, res) => {
     try {
@@ -424,50 +438,55 @@ app.get('/api/usuarios/:userId', async (req, res) => {
 
 
 
+
 // Endpoint para obtener las ventas realizadas por un productor
 app.get('/ventas/productor/:usuarioId', async (req, res) => {
     const usuarioId = req.params.usuarioId;
 
     try {
-        // Verificar si el userId es 44, para traer todas las ventas
+        // Verificar si el usuario es el administrador (usuarioId 44)
         if (usuarioId === '44') {
             // Obtener todas las ventas de todos los productores
-            const [ordenesRows] = await pool.execute(
-                `SELECT
-                    o.OrdenID, o.FechaOrden, o.Total, o.Estado, p.ProductorID
-                FROM Ordenes o
-                JOIN OrdenDetalle od ON o.OrdenID = od.OrdenID
-                JOIN Productos p ON od.ProductoID = p.ProductoID
-                ORDER BY o.FechaOrden DESC`
+         const [ordenesRows] = await pool.execute(
+                 `SELECT DISTINCT 
+        o.OrdenID, o.FechaOrden, o.Total, o.Estado
+    FROM Ordenes o
+    JOIN OrdenDetalle od ON o.OrdenID = od.OrdenID
+    JOIN Productos p ON od.ProductoID = p.ProductoID
+    ORDER BY o.FechaOrden DESC`
             );
-	      if (ordenesRows.length === 0) {
+
+            if (ordenesRows.length === 0) {
                 return res.status(404).json({ message: 'No hay ventas registradas' });
             }
 
-            // Paso 3: Obtener detalles de los productos vendidos
+            // Paso 3: Obtener detalles de los productos vendidos para todas las órdenes
             const ventas = [];
 
+            // Iterar sobre las órdenes para obtener sus productos (de todos los vendedores)
             for (const orden of ordenesRows) {
                 const [productosRows] = await pool.execute(
-                    `SELECT
-                        p.Nombre AS Producto, od.Cantidad, od.PrecioUnitario AS Precio, od.Subtotal
+                    `SELECT 
+                        p.Nombre AS Producto, od.Cantidad, od.PrecioUnitario AS Precio, od.Subtotal, p.ProductorID
                     FROM OrdenDetalle od
                     JOIN Productos p ON od.ProductoID = p.ProductoID
-                    WHERE od.OrdenID = ? AND p.ProductorID = ?`,
-                    [orden.OrdenID, orden.ProductorID]  // Para obtener los productos vendidos por cada productor
+                    WHERE od.OrdenID = ?`,
+                    [orden.OrdenID]  // Solo se filtra por la orden, no por el productor
                 );
-		 ventas.push({
+
+                ventas.push({
                     OrdenID: orden.OrdenID,
                     FechaOrden: orden.FechaOrden,
                     Total: orden.Total,
                     Estado: orden.Estado,
-                    Productos: productosRows,
+                    Productos: productosRows,  // Todos los productos de esta orden
                 });
             }
 
+            // Devolver todas las ventas y sus productos
             return res.json(ventas);
         } else {
-            // Paso 1: Obtener el ProductorID asociado al UsuarioID
+            // Obtener el productorId para un usuario normal
             const [productorRows] = await pool.execute(
                 'SELECT ProductorID FROM Productores WHERE UsuarioID = ?',
                 [usuarioId]
@@ -476,16 +495,17 @@ app.get('/ventas/productor/:usuarioId', async (req, res) => {
             if (productorRows.length === 0) {
                 return res.status(404).json({ message: 'Productor no encontrado' });
             }
-	     const productorId = productorRows[0].ProductorID;
 
-            // Paso 2: Obtener las órdenes del Productor
+            const productorId = productorRows[0].ProductorID;
+
+            // Obtener las órdenes del productor
             const [ordenesRows] = await pool.execute(
-                `SELECT
+                `SELECT 
                     o.OrdenID, o.FechaOrden, o.Total, o.Estado
                 FROM Ordenes o
                 JOIN OrdenDetalle od ON o.OrdenID = od.OrdenID
                 JOIN Productos p ON od.ProductoID = p.ProductoID
-                WHERE p.ProductorID = ?
+                WHERE p.ProductorID = ? 
                 ORDER BY o.FechaOrden DESC`,
                 [productorId]
             );
@@ -494,18 +514,17 @@ app.get('/ventas/productor/:usuarioId', async (req, res) => {
                 return res.status(404).json({ message: 'No hay ventas registradas para este productor' });
             }
 
-	       // Paso 3: Obtener detalles de los productos vendidos
+            // Paso 3: Obtener detalles de los productos vendidos
             const ventas = [];
 
             for (const orden of ordenesRows) {
                 const [productosRows] = await pool.execute(
-                    `SELECT
+                    `SELECT 
                         p.Nombre AS Producto, od.Cantidad, od.PrecioUnitario AS Precio, od.Subtotal
                     FROM OrdenDetalle od
                     JOIN Productos p ON od.ProductoID = p.ProductoID
-                    WHERE od.OrdenID = ?
-                    AND p.ProductorID = ?`,
-                    [orden.OrdenID, productorId] // Combina los parámetros en un único array
+                    WHERE od.OrdenID = ? AND p.ProductorID = ?`,
+                    [orden.OrdenID, productorId]
                 );
 
                 ventas.push({
@@ -517,16 +536,18 @@ app.get('/ventas/productor/:usuarioId', async (req, res) => {
                 });
             }
 
-	    
             // Devolver los resultados en formato JSON
             return res.json(ventas);
         }
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error en el servidor' });
-    }
+        res.status(500).json({ message: 'Error en el servidor' });
+    }
 });
+
+
+
 
 
 //Actualizar estado compra
@@ -701,6 +722,26 @@ app.get('/api/calificaciones/:productoId', async (req, res) => {
         console.error('Error al obtener las calificaciones:', error);
         res.status(500).json({ error: 'Error al obtener las calificaciones' });
     }
+});
+
+//Get información de todos los usuarios pestañan de superusuario
+app.get('/api/usuarios/', async (req, res) => {
+    try {
+        // Consulta para obtener los datos de todos los usuarios
+        const [usuarioRows] = await pool.query(
+            'SELECT u.UsuarioID,u.Nombre, u.rol, u.Telefono, u.Email from Usuarios u'
+        );
+
+        // Verificar si se encontraron usuarios
+        if (usuarioRows.length > 0) {
+            res.json(usuarioRows); // Devolver todos los usuarios como un array
+        } else {
+            res.status(404).json({ error: 'No se encontraron usuarios' });
+        }
+    } catch (error) {
+        console.error('Error al obtener datos de los usuarios:', error);
+        res.status(500).json({ error: 'Error al obtener los datos de los usuarios' });
+    }
 });
 
 

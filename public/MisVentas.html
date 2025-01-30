@@ -15,18 +15,18 @@
         <a href="index.html">Inicio</a>
         <a href="vendedor.html" class="tab-link" data-tab="productos">Administrar Productos</a>
         <a href="MisVentas.html" class="tab-link active" data-tab="ventas">Mis Ventas</a>
+	<a href="usuarios.html" class="tab-link" data-tab="vendedores" id="vendedoresTab" style="display: none;">Usuarios</a>
         
     </nav>
 
     <div class="container">
         <div class="panel active" id="ventas">
-            
-	 <!--  mensaje para administradores -->
-            <div id="adminMessage" style="display: none; padding: 10px; background-color: #4CAF50; color: white; margin-bo">
+            <!-- Aquí se mostrará el mensaje para administradores -->
+            <div id="adminMessage" style="display: none; padding: 10px; background-color: #4CAF50; color: white; margin-bottom: 20px;">
                 <p><strong>¡Eres administrador!</strong> Tienes acceso completo a todos los productos y ventas.</p>
-            </div>	
+            </div>
 
-	<h2>Mis Ventas</h2>
+            <h2>Mis Ventas</h2>
             <table class="table">
                 <thead>
                     <tr>
@@ -59,13 +59,12 @@
                 window.location.href = 'login.html';
                 return;
             }
-	 // Validar si el userId es 44 y mostrar mensaje de administrador
+             // Validar si el userId es 44 y mostrar mensaje de administrador
              if (userId === '44') {
                 const adminMessage = document.getElementById('adminMessage');
                 adminMessage.style.display = 'block'; // Mostrar mensaje de administrador
             }
 
-		
 
             try {
                 const response = await fetch(`/ventas/productor/${userId}`, {
@@ -139,9 +138,9 @@
                                         
                                         <strong>Teléfono:</strong> ${comprador.Telefono}<br>
                                         <strong>Dirección:</strong> ${comprador.Direccion}<br>
-                                        <strong>Correo:</strong> ${comprador.MetodoPago}<br>
-                                        <strong>Correo:</strong> ${comprador.MetodoEntrega}<br>
-                                        <strong>Correo:</strong> ${comprador.Instrucciones}<br>
+                                        <strong>Método de pago:</strong> ${comprador.MetodoPago}<br>
+                                        <strong>Entrega:</strong> ${comprador.MetodoEntrega}<br>
+                                        <strong>Instrucciones adicionales:</strong> ${comprador.Instrucciones}<br>
                                     `;
                                     clienteInfoDiv.style.display = 'block';
                                 } catch (error) {
@@ -180,8 +179,22 @@
                 alert('Error al actualizar el estado.');
             }
         }
+
+	function ajustarTabs() {
+            const userId = sessionStorage.getItem('userId');
+            const userIdEspecifico = '44';  // ID específico que cambia los nombres de los tabs
+
+            if (userId === userIdEspecifico) {
+                // Mostrar la pestaña de Vendedores
+                document.getElementById('vendedoresTab').style.display = 'inline-block';
+            }
+        }
     
-        window.onload = cargarVentas;
+
+	window.onload = function() {
+            ajustarTabs();  // Ajustar las pestañas
+            cargarVentas();  // Cargar los vendedores si es el usuario correcto
+        };
     </script>
     
 </body>

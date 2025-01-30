@@ -16,6 +16,7 @@
         <a href="index.html">Inicio</a>
         <a href="vendedor.html" class="tab-link active" data-tab="productos">Administrar Productos</a>
         <a href="MisVentas.html" class="tab-link" data-tab="ventas">Mis Ventas</a>
+	<a href="usuarios.html" class="tab-link" data-tab="vendedores" id="vendedoresTab" style="display: none;">Usuarios</a>
         
     </nav>
 
@@ -136,7 +137,15 @@
     </footer>
 
     <script>
-        
+         function ajustarTabs() {
+            const userId = sessionStorage.getItem('userId');
+            const userIdEspecifico = '44';  // ID específico que cambia los nombres de los tabs
+
+            if (userId === userIdEspecifico) {
+                // Mostrar la pestaña de Vendedores
+                document.getElementById('vendedoresTab').style.display = 'inline-block';
+            }
+        }
         // Función para cargar los productos
         async function cargarProductos() {
             const userId = sessionStorage.getItem('userId');
@@ -321,7 +330,10 @@
 
 
     
-        window.onload = cargarProductos;
+        window.onload = function() {
+            ajustarTabs();  // Ajustar las pestañas
+            cargarProductos();  // Cargar los vendedores si es el usuario correcto
+        };
     </script>    
 
 </body>

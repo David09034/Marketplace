@@ -7,20 +7,28 @@
     <link rel="stylesheet" href="LoginForm.css">
 </head>
 <body>
+    <nav class="navbar">
+        <div class="logo">
+            <h1>Chugchilán</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-home"></i> Inicio</a></li>
+            <li><a href="nosotros.html"><i class="fas fa-users"></i> Nosotros</a></li>
+        </ul>
+    </nav>
     <div class="wrapper">
-        
         <form id="loginForm">
             <h1>Login</h1>
             <div class="intro-message">
                 <p>Por favor, ingrese su correo electrónico y contraseña para acceder a su cuenta.</p>
             </div>
             <div class="input-box">
-                <input type="text" id="email" name="email" placeholder="Correo Electrónico" required>
-                <span class="icon">👤</span> 
+                <span class="icon">👤</span>
+                <input type="email" id="email" name="email" placeholder="Correo Electrónico" required>
             </div>
             <div class="input-box">
+                <span class="icon">🔒</span>
                 <input type="password" id="contraseña" name="contraseña" placeholder="Contraseña" required>
-                <span class="icon">🔒</span> 
             </div>
             <button type="submit">Ingresar</button>
             <div class="register-link">
@@ -30,7 +38,6 @@
     </div>
 
     <script>
-        // Manejar el envío del formulario
         document.getElementById('loginForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
@@ -41,9 +48,9 @@
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Content-Type': 'application/json',
                     },
-                    body: new URLSearchParams({
+                    body: JSON.stringify({
                         email: email,
                         contraseña: contraseña
                     })
@@ -52,11 +59,8 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Guardar los datos en sessionStorage
                     sessionStorage.setItem('userId', data.userId);
-                    sessionStorage.setItem('userRole', data.userRole);  
-                  
-                    // Redirigir al usuario a la página principal
+                    sessionStorage.setItem('userRole', data.userRole);
                     window.location.href = 'index.html';
                 } else {
                     alert(data.message);
